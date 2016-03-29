@@ -7,10 +7,8 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 
 public class EspWifiAdminSimple {
-
 	private final Context mContext;
 
-	
 	public EspWifiAdminSimple(Context context) {
 		mContext = context;
 	}
@@ -20,48 +18,33 @@ public class EspWifiAdminSimple {
 		String ssid = null;
 		if (mWifiInfo != null && isWifiConnected()) {
 			int len = mWifiInfo.getSSID().length();
-			if (mWifiInfo.getSSID().startsWith("\"")
-					&& mWifiInfo.getSSID().endsWith("\"")) {
+			if (mWifiInfo.getSSID().startsWith("\"") && mWifiInfo.getSSID().endsWith("\"")) {
 				ssid = mWifiInfo.getSSID().substring(1, len - 1);
 			} else {
 				ssid = mWifiInfo.getSSID();
 			}
-
 		}
 		return ssid;
 	}
-	
+
 	public String getWifiConnectedBssid() {
-		WifiInfo mWifiInfo = getConnectionInfo();
-		String bssid = null;
-		if (mWifiInfo != null && isWifiConnected()) {
-			bssid = mWifiInfo.getBSSID();
-		}
-		return bssid;
+		final WifiInfo info = getConnectionInfo();
+		return (info != null && isWifiConnected()) ? info.getBSSID() : null;
 	}
 
 	// get the wifi info which is "connected" in wifi-setting
 	private WifiInfo getConnectionInfo() {
-		WifiManager mWifiManager = (WifiManager) mContext
-				.getSystemService(Context.WIFI_SERVICE);
-		WifiInfo wifiInfo = mWifiManager.getConnectionInfo();
-		return wifiInfo;
+		final WifiManager wifi = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+		return wifi.getConnectionInfo();
 	}
 
 	private boolean isWifiConnected() {
-		NetworkInfo mWiFiNetworkInfo = getWifiNetworkInfo();
-		boolean isWifiConnected = false;
-		if (mWiFiNetworkInfo != null) {
-			isWifiConnected = mWiFiNetworkInfo.isConnected();
-		}
-		return isWifiConnected;
+		final NetworkInfo info = getWifiNetworkInfo();
+		return info != null && info.isConnected();
 	}
 
 	private NetworkInfo getWifiNetworkInfo() {
-		ConnectivityManager mConnectivityManager = (ConnectivityManager) mContext
-				.getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo mWiFiNetworkInfo = mConnectivityManager
-				.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-		return mWiFiNetworkInfo;
+		final ConnectivityManager conn = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+		return conn.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 	}
 }
