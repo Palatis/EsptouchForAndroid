@@ -1,8 +1,70 @@
 apply plugin: 'java'
+apply plugin: 'maven'
 
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+def getVersionCode = { ->
+    try {
+        def code = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'tag', '--list'
+            standardOutput = code
+        }
+        return code.toString().split("\n").size()
+    }
+    catch (ignored) {
+        return -1;
+    }
+}
+
+def getVersionName = { ->
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'describe', '--tags', '--long'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    }
+    catch (ignored) {
+        return null;
+    }
+}
+
+def pomGroupId = 'tw.idv.palatis'
+def pomArtifactId = 'esptouch-java'
+
+install {
+    repositories {
+        mavenInstaller {
+            pom.version = getVersionName()
+            pom.groupId = pomGroupId
+            pom.artifactId = pomArtifactId
+        }
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file:///${rootProject.rootDir}/maven-repository")
+            pom.project {
+                version = getVersionName()
+                groupId = pomGroupId
+                artifactId = pomArtifactId
+                licenses {
+                    license {
+                        name 'ESPRSSIF MIT License v1.0'
+                        url 'https://github.com/Palatis/EsptouchForAndroid/blob/master/ESPRESSIF%20MIT%20LICENSE%20V1.md'
+                        distribution 'repo'
+                    }
+                }
+            }
+        }
+    }
 }
