@@ -1,7 +1,5 @@
 package com.espressif.iot.esptouch.udp;
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -9,11 +7,9 @@ import java.net.SocketException;
 import java.util.Arrays;
 
 public class UDPSocketServer {
-	private static final String TAG = "UDPSocketServer";
-	private DatagramPacket mReceivePacket;
+	private DatagramPacket mReceivePacket = new DatagramPacket(new byte[64], 64);;
 	private DatagramSocket mServerSocket;
-	private final byte[] buffer;
-	private volatile boolean mIsClosed;
+	private boolean mIsClosed = false;
 
 	/**
 	 * Constructor of UDP Socket Server
@@ -22,14 +18,10 @@ public class UDPSocketServer {
 	 * @param socketTimeout the socket read timeout
 	 */
 	public UDPSocketServer(int port, int socketTimeout) {
-		this.buffer = new byte[64];
-		this.mReceivePacket = new DatagramPacket(buffer, 64);
 		try {
 			this.mServerSocket = new DatagramSocket(port);
 			this.mServerSocket.setSoTimeout(socketTimeout);
-			this.mIsClosed = false;
 		} catch (IOException e) {
-			Log.e(TAG, "IOException");
 			e.printStackTrace();
 		}
 	}
@@ -56,10 +48,8 @@ public class UDPSocketServer {
 	 * @return
 	 */
 	public byte receiveOneByte() {
-		Log.d(TAG, "receiveOneByte() entrance");
 		try {
 			mServerSocket.receive(mReceivePacket);
-			Log.d(TAG, "receive: " + (mReceivePacket.getData()[0]));
 			return mReceivePacket.getData()[0];
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -75,18 +65,10 @@ public class UDPSocketServer {
 	 * @return
 	 */
 	public byte[] receiveSpecLenBytes(int len) {
-		Log.d(TAG, "receiveSpecLenBytes() entrance: len = " + len);
 		try {
 			mServerSocket.receive(mReceivePacket);
 			byte[] recDatas = Arrays.copyOf(mReceivePacket.getData(), mReceivePacket.getLength());
-			Log.d(TAG, "received len : " + recDatas.length);
-			for (int i = 0; i < recDatas.length; i++) {
-				Log.e(TAG, "recDatas[" + i + "]:" + recDatas[i]);
-			}
-			Log.e(TAG, "receiveSpecLenBytes: " + new String(recDatas));
 			if (recDatas.length != len) {
-				Log.w(TAG,
-						"received len is different from specific len, return null");
 				return null;
 			}
 			return recDatas;
@@ -97,13 +79,11 @@ public class UDPSocketServer {
 	}
 
 	public void interrupt() {
-		Log.i(TAG, "USPSocketServer is interrupt");
 		close();
 	}
 
 	public synchronized void close() {
 		if (!this.mIsClosed) {
-			Log.e(TAG, "mServerSocket is closed");
 			mServerSocket.close();
 			this.mIsClosed = true;
 		}
@@ -114,5 +94,4 @@ public class UDPSocketServer {
 		close();
 		super.finalize();
 	}
-
 }

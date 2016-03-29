@@ -56,7 +56,7 @@ public class EspNetUtil {
 	 * @param inetAddrBytes
 	 * @return
 	 */
-	public static InetAddress parseInetAddr(byte[] inetAddrBytes, int offset, int count) {
+	public static InetAddress parseInetAddress(byte[] inetAddrBytes, int offset, int count) {
 		InetAddress inetAddress = null;
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < count; i++) {

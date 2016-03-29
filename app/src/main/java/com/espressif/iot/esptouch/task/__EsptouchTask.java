@@ -1,15 +1,11 @@
 package com.espressif.iot.esptouch.task;
 
-import android.util.Log;
-
 import com.espressif.iot.esptouch.EsptouchResult;
 import com.espressif.iot.esptouch.EsptouchTask;
-import com.espressif.iot.esptouch.demo_activity.EspNetUtil;
 import com.espressif.iot.esptouch.protocol.EsptouchGenerator;
 import com.espressif.iot.esptouch.udp.UDPSocketClient;
 import com.espressif.iot.esptouch.udp.UDPSocketServer;
 import com.espressif.iot.esptouch.util.ByteUtil;
-import com.espressif.iot_esptouch_demo.BuildConfig;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -23,8 +19,6 @@ public class __EsptouchTask {
 	 * one indivisible data contain 3 9bits info
 	 */
 	private static final int ONE_DATA_LEN = 3;
-
-	private static final String TAG = "EsptouchTask";
 
 	private volatile List<EsptouchResult> mEsptouchResultList;
 	private volatile boolean mSuccessed = false;
@@ -41,20 +35,19 @@ public class __EsptouchTask {
 	private volatile Map<String, Integer> mBssidTaskSucCountMap;
 
 	private EsptouchTask.OnEsptouchResultListener mOnEsptouchResultListener;
-	private EsptouchTask.GetLocalInetAddressCallback mGetLocalInetAddressCallback;
+	private EsptouchTask.NetworkHelperCallback mNetworkHelperCallback;
+	private EsptouchTask.Logger mLogger;
 
 	public __EsptouchTask(String apSsid, String apBssid, String apPassword, EsptouchTaskParameter parameter, boolean isSsidHidden) {
-		if (apSsid == null || apSsid.isEmpty()) {
+		if (apSsid == null || apSsid.isEmpty())
 			throw new IllegalArgumentException("AP SSID should not be null or empty");
-		}
-		if (apPassword == null)
-			apPassword = "";
+
 		mApSsid = apSsid;
 		mApBssid = apBssid;
-		mApPassword = apPassword;
+		mApPassword = apPassword == null ? "" : apPassword;
 		mCancelled = new AtomicBoolean(false);
-		mSocketClient = new UDPSocketClient();
 		mParameter = parameter;
+		mSocketClient = new UDPSocketClient();
 		mSocketServer = new UDPSocketServer(mParameter.getPortListening(), mParameter.getWaitUdpTotalMillisecond());
 		mIsSsidHidden = isSsidHidden;
 		mEsptouchResultList = new ArrayList<>();
@@ -98,8 +91,7 @@ public class __EsptouchTask {
 	private List<EsptouchResult> __getEsptouchResultList() {
 		synchronized (mEsptouchResultList) {
 			if (mEsptouchResultList.isEmpty()) {
-				EsptouchResult esptouchResultFail = new EsptouchResult(false,
-						null, null);
+				EsptouchResult esptouchResultFail = new EsptouchResult(false, null, null);
 				esptouchResultFail.setCancelled(mCancelled.get());
 				mEsptouchResultList.add(esptouchResultFail);
 			}
@@ -119,9 +111,8 @@ public class __EsptouchTask {
 	}
 
 	public void interrupt() {
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "interrupt()");
-		}
+		mLogger.debug("interrupt()");
+
 		mCancelled.set(true);
 		__interrupt();
 	}
@@ -129,15 +120,13 @@ public class __EsptouchTask {
 	private void __listenAsyn(final int expectDataLen) {
 		new Thread() {
 			public void run() {
-				if (BuildConfig.DEBUG) {
-					Log.d(TAG, "__listenAsyn() start");
-				}
+				mLogger.debug("__listenAsyn() start");
+
 				long startTimestamp = System.currentTimeMillis();
 				byte[] apSsidAndPassword = ByteUtil.getBytesByString(mApSsid + mApPassword);
 				byte expectOneByte = (byte) (apSsidAndPassword.length + 9);
-				if (BuildConfig.DEBUG) {
-					Log.i(TAG, "expectOneByte: " + (0 + expectOneByte));
-				}
+				mLogger.debug("expectOneByte: " + expectOneByte);
+
 				byte receiveOneByte = -1;
 				byte[] receiveBytes = null;
 				while (mEsptouchResultList.size() < mParameter
@@ -150,29 +139,24 @@ public class __EsptouchTask {
 						receiveOneByte = -1;
 					}
 					if (receiveOneByte == expectOneByte) {
-						if (BuildConfig.DEBUG) {
-							Log.i(TAG, "receive correct broadcast");
-						}
+						mLogger.debug("receive correct broadcast");
+
 						// change the socket's timeout
 						long consume = System.currentTimeMillis() - startTimestamp;
 						int timeout = (int) (mParameter.getWaitUdpTotalMillisecond() - consume);
 						if (timeout < 0) {
 							break;
 						} else {
-							if (BuildConfig.DEBUG) {
-								Log.i(TAG, "mSocketServer's new timeout is "
-										+ timeout + " milliseconds");
-							}
 							mSocketServer.setSoTimeout(timeout);
-							if (BuildConfig.DEBUG) {
-								Log.i(TAG, "receive correct broadcast");
-							}
+							mLogger.debug("mSocketServer's new timeout is " + timeout + " milliseconds");
+							mLogger.debug("receive correct broadcast");
+
 							if (receiveBytes != null) {
 								String bssid = ByteUtil.parseBssid(
 										receiveBytes,
 										mParameter.getEsptouchResultOneLen(),
 										mParameter.getEsptouchResultMacLen());
-								InetAddress inetAddress = EspNetUtil.parseInetAddr(
+								InetAddress inetAddress = mNetworkHelperCallback.parseInetAddress(
 										receiveBytes,
 										mParameter.getEsptouchResultOneLen() + mParameter.getEsptouchResultMacLen(),
 										mParameter.getEsptouchResultIpLen());
@@ -230,7 +214,7 @@ public class __EsptouchTask {
 	}
 
 	private void __checkTaskValid() {
-		if (mGetLocalInetAddressCallback == null)
+		if (mNetworkHelperCallback == null)
 			throw new IllegalStateException("should have GetLocalInetAddressCallback set.");
 		if (mExecuted)
 			throw new IllegalStateException("the Esptouch task could be executed only once");
@@ -246,10 +230,9 @@ public class __EsptouchTask {
 
 		mParameter.setExpectTaskResultCount(expectTaskResultCount);
 
-		InetAddress localInetAddress = mGetLocalInetAddressCallback.getLocalInetAddress();
-		if (BuildConfig.DEBUG) {
-			Log.i(TAG, "localInetAddress: " + localInetAddress);
-		}
+		InetAddress localInetAddress = mNetworkHelperCallback.getLocalInetAddress();
+		mLogger.debug("localInetAddress: " + localInetAddress);
+
 		// generator the esptouch byte[][] to be transformed, which will cost
 		// some time(maybe a bit much)
 		EsptouchGenerator generator = new EsptouchGenerator(mApSsid, mApBssid, mApPassword, localInetAddress, mIsSsidHidden);
@@ -286,7 +269,11 @@ public class __EsptouchTask {
 		mOnEsptouchResultListener = listener;
 	}
 
-	public void setGetLocalInetAddressCallback(EsptouchTask.GetLocalInetAddressCallback callback) {
-		mGetLocalInetAddressCallback = callback;
+	public void setGetLocalInetAddressCallback(EsptouchTask.NetworkHelperCallback callback) {
+		mNetworkHelperCallback = callback;
+	}
+
+	public void setLogger(EsptouchTask.Logger logger) {
+		mLogger = logger;
 	}
 }

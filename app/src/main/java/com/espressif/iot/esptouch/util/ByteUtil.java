@@ -8,29 +8,23 @@ import java.util.Random;
  * The range of byte is [-128,127], and the range of char is [0,65535].
  * So the byte could used to store the uint8.
  * (We assume that the String could be mapped to assic)
- * @author afunx
  *
+ * @author afunx
  */
 public class ByteUtil {
-	
 	public static final String ESPTOUCH_ENCODING_CHARSET = "UTF-8";
-	
+
 	/**
 	 * Put String to byte[]
-	 * 
-	 * @param destbytes
-	 *            the byte[] of dest
-	 * @param srcString
-	 *            the String of src
-	 * @param destOffset
-	 *            the offset of byte[]
-	 * @param srcOffset
-	 *            the offset of String
-	 * @param count
-	 *            the count of dest, and the count of src as well
+	 *
+	 * @param destbytes  the byte[] of dest
+	 * @param srcString  the String of src
+	 * @param destOffset the offset of byte[]
+	 * @param srcOffset  the offset of String
+	 * @param count      the count of dest, and the count of src as well
 	 */
 	public static void putString2bytes(byte[] destbytes, String srcString,
-			int destOffset, int srcOffset, int count) {
+	                                   int destOffset, int srcOffset, int count) {
 		for (int i = 0; i < count; i++) {
 			destbytes[count + i] = srcString.getBytes()[i];
 		}
@@ -38,9 +32,8 @@ public class ByteUtil {
 
 	/**
 	 * Convert uint8 into char( we treat char as uint8)
-	 * 
-	 * @param uint8
-	 *            the unit8 to be converted
+	 *
+	 * @param uint8 the unit8 to be converted
 	 * @return the byte of the unint8
 	 */
 	public static byte convertUint8toByte(char uint8) {
@@ -52,9 +45,8 @@ public class ByteUtil {
 
 	/**
 	 * Convert char into uint8( we treat char as uint8 )
-	 * 
-	 * @param b
-	 *            the byte to be converted
+	 *
+	 * @param b the byte to be converted
 	 * @return the char(uint8)
 	 */
 	public static char convertByte2Uint8(byte b) {
@@ -65,9 +57,8 @@ public class ByteUtil {
 
 	/**
 	 * Convert byte[] into char[]( we treat char[] as uint8[])
-	 * 
-	 * @param bytes
-	 *            the byte[] to be converted
+	 *
+	 * @param bytes the byte[] to be converted
 	 * @return the char[](uint8[])
 	 */
 	public static char[] convertBytes2Uint8s(byte[] bytes) {
@@ -81,31 +72,23 @@ public class ByteUtil {
 
 	/**
 	 * Put byte[] into char[]( we treat char[] as uint8[])
-	 * 
-	 * @param dest
-	 *            the char[](uint8[]) array
-	 * @param src
-	 *            the byte[]
-	 * @param destOffset
-	 *            the offset of char[](uint8[])
-	 * @param srcOffset
-	 *            the offset of byte[]
-	 * @param count
-	 *            the count of dest, and the count of src as well
+	 *
+	 * @param destUint8s the char[](uint8[]) array
+	 * @param srcBytes   the byte[]
+	 * @param destOffset the offset of char[](uint8[])
+	 * @param srcOffset  the offset of byte[]
+	 * @param count      the count of dest, and the count of src as well
 	 */
-	public static void putbytes2Uint8s(char[] destUint8s, byte[] srcBytes,
-			int destOffset, int srcOffset, int count) {
+	public static void putbytes2Uint8s(char[] destUint8s, byte[] srcBytes, int destOffset, int srcOffset, int count) {
 		for (int i = 0; i < count; i++) {
-			destUint8s[destOffset + i] = convertByte2Uint8(srcBytes[srcOffset
-					+ i]);
+			destUint8s[destOffset + i] = convertByte2Uint8(srcBytes[srcOffset + i]);
 		}
 	}
 
 	/**
 	 * Convert byte to Hex String
-	 * 
-	 * @param b
-	 *            the byte to be converted
+	 *
+	 * @param b the byte to be converted
 	 * @return the Hex String
 	 */
 	public static String convertByte2HexString(byte b) {
@@ -115,9 +98,8 @@ public class ByteUtil {
 
 	/**
 	 * Convert char(uint8) to Hex String
-	 * 
-	 * @param u8
-	 *            the char(uint8) to be converted
+	 *
+	 * @param u8 the char(uint8) to be converted
 	 * @return the Hex String
 	 */
 	public static String convertU8ToHexString(char u8) {
@@ -127,15 +109,14 @@ public class ByteUtil {
 	/**
 	 * Split uint8 to 2 bytes of high byte and low byte. e.g. 20 = 0x14 should
 	 * be split to [0x01,0x04] 0x01 is high byte and 0x04 is low byte
-	 * 
-	 * @param uint8
-	 *            the char(uint8)
+	 *
+	 * @param uint8 the char(uint8)
 	 * @return the high and low bytes be split, byte[0] is high and byte[1] is
-	 *         low
+	 * low
 	 */
 	public static byte[] splitUint8To2bytes(char uint8) {
 		if (uint8 < 0 || uint8 > 0xff) {
-			throw new RuntimeException("Out of Boundary");
+			throw new IndexOutOfBoundsException("Out of Boundary");
 		}
 		String hexString = Integer.toHexString(uint8);
 		byte low;
@@ -147,17 +128,14 @@ public class ByteUtil {
 			high = 0;
 			low = (byte) Integer.parseInt(hexString.substring(0, 1), 16);
 		}
-		byte[] result = new byte[] { high, low };
-		return result;
+		return new byte[]{high, low};
 	}
 
 	/**
 	 * Combine 2 bytes (high byte and low byte) to one whole byte
-	 * 
-	 * @param high
-	 *            the high byte
-	 * @param low
-	 *            the low byte
+	 *
+	 * @param high the high byte
+	 * @param low  the low byte
 	 * @return the whole byte
 	 */
 	public static byte combine2bytesToOne(byte high, byte low) {
@@ -169,11 +147,9 @@ public class ByteUtil {
 
 	/**
 	 * Combine 2 bytes (high byte and low byte) to
-	 * 
-	 * @param high
-	 *            the high byte
-	 * @param low
-	 *            the low byte
+	 *
+	 * @param high the high byte
+	 * @param low  the low byte
 	 * @return the char(u8)
 	 */
 	public static char combine2bytesToU16(byte high, byte low) {
@@ -184,7 +160,7 @@ public class ByteUtil {
 
 	/**
 	 * Generate the random byte to be sent
-	 * 
+	 *
 	 * @return the random byte
 	 */
 	private static byte randomByte() {
@@ -193,9 +169,8 @@ public class ByteUtil {
 
 	/**
 	 * Generate the random byte to be sent
-	 * 
-	 * @param len
-	 *            the len presented by u8
+	 *
+	 * @param len the len presented by u8
 	 * @return the byte[] to be sent
 	 */
 	public static byte[] randomBytes(char len) {
@@ -213,65 +188,61 @@ public class ByteUtil {
 		}
 		return data;
 	}
-	
+
 	/**
 	 * Generate the random byte to be sent
-	 * 
-	 * @param len
-	 *            the len presented by byte
+	 *
+	 * @param len the len presented by byte
 	 * @return the byte[] to be sent
 	 */
 	public static byte[] randomBytes(byte len) {
 		char u8 = convertByte2Uint8(len);
 		return randomBytes(u8);
 	}
-	
+
 	/**
 	 * Generate the specific byte to be sent
-	 * @param len
-	 *            the len presented by byte
-	 * @return the byte[] 
+	 *
+	 * @param len the len presented by byte
+	 * @return the byte[]
 	 */
 	public static byte[] genSpecBytes(byte len) {
 		char u8 = convertByte2Uint8(len);
 		return genSpecBytes(u8);
 	}
-	
+
 	public static String parseBssid(byte[] bssidBytes, int offset, int count) {
 		byte[] bytes = new byte[count];
-		for (int i = 0; i < count; i++) {
-			bytes[i] = bssidBytes[i + offset];
-		}
+		System.arraycopy(bssidBytes, offset, bytes, 0, count);
 		return parseBssid(bytes);
 	}
-	
-    /**
-     * parse "24,-2,52,-102,-93,-60" to "18,fe,34,9a,a3,c4"
-     * parse the bssid from hex to String
-     * @param bssidBytes the hex bytes bssid, e.g. {24,-2,52,-102,-93,-60}
-     * @return the String of bssid, e.g. 18fe349aa3c4
-     */
-    public static String parseBssid(byte[] bssidBytes)
-    {
-        StringBuilder sb = new StringBuilder();
-        int k;
-        String hexK;
-        String str;
-        for (int i = 0; i < bssidBytes.length; i++)
-        {
-            k = 0xff & bssidBytes[i];
-            hexK = Integer.toHexString(k);
-            str = ((k < 16) ? ("0" + hexK) : (hexK));
-            System.out.println(str);
-            sb.append(str);
-        }
-        return sb.toString();
-    }
-    
-    /**
-     * @param string the string to be used
-     * @return the byte[] of String according to {@link #ESPTOUCH_ENCODING_CHARSET}
-     */
+
+	/**
+	 * parse "24,-2,52,-102,-93,-60" to "18,fe,34,9a,a3,c4"
+	 * parse the bssid from hex to String
+	 *
+	 * @param bssidBytes the hex bytes bssid, e.g. {24,-2,52,-102,-93,-60}
+	 * @return the String of bssid, e.g. 18fe349aa3c4
+	 */
+	public static String parseBssid(byte[] bssidBytes) {
+		StringBuilder sb = new StringBuilder();
+		int k;
+		String hexK;
+		String str;
+		for (byte bssidByte : bssidBytes) {
+			k = 0xff & bssidByte;
+			hexK = Integer.toHexString(k);
+			str = ((k < 16) ? ("0" + hexK) : (hexK));
+			System.out.println(str);
+			sb.append(str);
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * @param string the string to be used
+	 * @return the byte[] of String according to {@link #ESPTOUCH_ENCODING_CHARSET}
+	 */
 	public static byte[] getBytesByString(String string) {
 		try {
 			return string.getBytes(ESPTOUCH_ENCODING_CHARSET);
@@ -327,18 +298,15 @@ public class ByteUtil {
 			System.out.println("test_convertUint8toByte(): fail");
 		}
 	}
-	
-    private static void test_parseBssid() {
-        byte b[] = {15, -2, 52, -102, -93, -60};
-        if(parseBssid(b).equals("0ffe349aa3c4"))
-        {
-            System.out.println("test_parseBssid(): pass");
-        }
-        else
-        {
-            System.out.println("test_parseBssid(): fail");
-        }
-    }
+
+	private static void test_parseBssid() {
+		byte b[] = {15, -2, 52, -102, -93, -60};
+		if (parseBssid(b).equals("0ffe349aa3c4")) {
+			System.out.println("test_parseBssid(): pass");
+		} else {
+			System.out.println("test_parseBssid(): fail");
+		}
+	}
 
 	public static void main(String args[]) {
 		test_convertUint8toByte();

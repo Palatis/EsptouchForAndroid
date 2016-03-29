@@ -1,7 +1,6 @@
 package com.espressif.iot.esptouch.task;
 
 public class EsptouchTaskParameter {
-
 	private long mIntervalGuideCodeMillisecond;
 	private long mIntervalDataCodeMillisecond;
 	private long mTimeoutGuideCodeMillisecond;

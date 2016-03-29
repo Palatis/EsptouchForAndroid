@@ -66,8 +66,7 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 		for (int i = 0; i < length; i++) {
 			spinnerItemsInteger[i] = spinnerItemsInt[i];
 		}
-		ArrayAdapter<Integer> adapter = new ArrayAdapter<Integer>(this,
-				android.R.layout.simple_list_item_1, spinnerItemsInteger);
+		ArrayAdapter<Integer> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, spinnerItemsInteger);
 		mSpinnerTaskCount.setAdapter(adapter);
 		mSpinnerTaskCount.setSelection(1);
 	}
@@ -89,28 +88,25 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 
 	@Override
 	public void onClick(View v) {
-
 		if (v == mBtnConfirm) {
 			String apSsid = mTvApSsid.getText().toString();
 			String apPassword = mEdtApPassword.getText().toString();
 			String apBssid = mWifiAdmin.getWifiConnectedBssid();
 			Boolean isSsidHidden = mSwitchIsSsidHidden.isChecked();
 			String isSsidHiddenStr = "NO";
-			String taskResultCountStr = Integer.toString(mSpinnerTaskCount
-					.getSelectedItemPosition());
+			String taskResultCountStr = Integer.toString(mSpinnerTaskCount.getSelectedItemPosition());
 			if (isSsidHidden) {
 				isSsidHiddenStr = "YES";
 			}
 			if (BuildConfig.DEBUG) {
-				Log.d(TAG, "mBtnConfirm is clicked, mEdtApSsid = " + apSsid
-						+ ", " + " mEdtApPassword = " + apPassword);
+				Log.d(TAG, "mBtnConfirm is clicked, mEdtApSsid = " + apSsid + ", " + " mEdtApPassword = " + apPassword);
 			}
 			new EsptouchAsyncTask().execute(apSsid, apBssid, apPassword, isSsidHiddenStr, taskResultCountStr);
 		}
 	}
 
 	private class EsptouchAsyncTask extends AsyncTask<String, EsptouchResult, List<EsptouchResult>>
-			implements EsptouchTask.OnEsptouchResultListener, EsptouchTask.GetLocalInetAddressCallback {
+			implements EsptouchTask.OnEsptouchResultListener, EsptouchTask.NetworkHelperCallback, EsptouchTask.Logger {
 		private ProgressDialog mProgressDialog;
 		private EsptouchTask mEsptouchTask;
 		// without the lock, if the user tap confirm and cancel quickly enough,
@@ -162,14 +158,12 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 				String apPassword = params[2];
 				String isSsidHiddenStr = params[3];
 				String taskResultCountStr = params[4];
-				boolean isSsidHidden = false;
-				if (isSsidHiddenStr.equals("YES")) {
-					isSsidHidden = true;
-				}
+				boolean isSsidHidden = isSsidHiddenStr.equals("YES");
 				taskResultCount = Integer.parseInt(taskResultCountStr);
 				mEsptouchTask = new EsptouchTask(apSsid, apBssid, apPassword, isSsidHidden);
 				mEsptouchTask.setEsptouchListener(this);
 				mEsptouchTask.setGetLocalInetAddressCallback(this);
+				mEsptouchTask.setLogger(this);
 			}
 			return mEsptouchTask.executeForResults(taskResultCount);
 		}
@@ -215,7 +209,7 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 
 		@Override
 		protected void onProgressUpdate(EsptouchResult... values) {
-			EsptouchResult result = values[0];
+			final EsptouchResult result = values[0];
 			Toast.makeText(getApplicationContext(), result.getBssid() + " is connected to the wifi", Toast.LENGTH_LONG).show();
 		}
 
@@ -227,6 +221,26 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 		@Override
 		public InetAddress getLocalInetAddress() {
 			return EspNetUtil.getLocalInetAddress(getApplicationContext());
+		}
+
+		@Override
+		public InetAddress parseInetAddress(byte[] bytes, int offset, int length) {
+			return EspNetUtil.parseInetAddress(bytes, offset, length);
+		}
+
+		@Override
+		public void info(String msg) {
+			Log.i("EsptouchTask", msg);
+		}
+
+		@Override
+		public void debug(String msg) {
+			Log.d("EsptouchTask", msg);
+		}
+
+		@Override
+		public void warning(String msg) {
+			Log.w("EsptouchTask", msg);
 		}
 	}
 }
