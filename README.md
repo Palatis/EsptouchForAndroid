@@ -5,6 +5,7 @@ This is a refactored version of [EsptouchForAndroid](https://github.com/Espressi
 Consult the [upstream README.md](README.upstream.md) for more information.
 
 The major difference are:
+
 1. stripped all Android specific codes from the protocol library, so it can be used on other platforms.
 2. refactored out unnecessary interfaces, thus making the library smaller (and possibility a tiny bit faster)
 3. released as a maven-repository for easier integration with [Android Studio](http://developer.android.com/sdk/) (or [Eclipse](https://eclipse.org/) / [IntelliJ IDEA](https://www.jetbrains.com/idea/))
