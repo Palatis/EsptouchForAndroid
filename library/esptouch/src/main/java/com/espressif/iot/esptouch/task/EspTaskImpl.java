@@ -129,10 +129,8 @@ public class EspTaskImpl {
 
 				byte receiveOneByte = -1;
 				byte[] receiveBytes = null;
-				while (mEsptouchResultList.size() < mParameter
-						.getExpectTaskResultCount() && !mInterrupted) {
-					receiveBytes = mSocketServer
-							.receiveSpecLenBytes(expectDataLen);
+				while (mEsptouchResultList.size() < mParameter.getExpectTaskResultCount() && !mInterrupted) {
+					receiveBytes = mSocketServer.receiveSpecLenBytes(expectDataLen);
 					if (receiveBytes != null) {
 						receiveOneByte = receiveBytes[0];
 					} else {
