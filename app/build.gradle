@@ -1,13 +1,46 @@
 apply plugin: 'com.android.application'
 
+
+def getVersionCode = { ->
+    try {
+        def code = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'tag', '--list'
+            standardOutput = code
+        }
+        return code.toString().split("\n").size()
+    }
+    catch (ignored) {
+        return -1;
+    }
+}
+
+def getVersionName = { ->
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'describe', '--tags', '--long'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    }
+    catch (ignored) {
+        return null;
+    }
+}
+
 android {
     compileSdkVersion 23
     buildToolsVersion "24.0.0 rc2"
 
+
     defaultConfig {
-        applicationId "com.espressif.iot_esptouch_demo"
+        applicationId "com.espressif.iot.esptouch.demo"
         minSdkVersion 14
-        targetSdkVersion 18
+        targetSdkVersion 23
+
+        versionCode getVersionCode()
+        versionName getVersionName()
     }
 
     buildTypes {
@@ -22,6 +55,7 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:23.2.1'
     compile project(':library:esptouch')
+    compile 'com.android.support:support-v4:23.2.1'
+    compile 'com.android.support:design:23.2.1'
 }

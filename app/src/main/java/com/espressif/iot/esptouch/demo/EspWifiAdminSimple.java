@@ -1,4 +1,4 @@
-package com.espressif.iot.esptouch.demo_activity;
+package com.espressif.iot.esptouch.demo;
 
 import android.content.Context;
 import android.net.ConnectivityManager;

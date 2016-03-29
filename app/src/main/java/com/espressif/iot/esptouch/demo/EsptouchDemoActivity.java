@@ -1,6 +1,5 @@
-package com.espressif.iot.esptouch.demo_activity;
+package com.espressif.iot.esptouch.demo;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -8,49 +7,65 @@ import android.content.DialogInterface.OnCancelListener;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.TextInputLayout;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SwitchCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.espressif.iot.esptouch.EsptouchResult;
 import com.espressif.iot.esptouch.EsptouchTask;
-import com.espressif.iot_esptouch_demo.BuildConfig;
-import com.espressif.iot_esptouch_demo.R;
 
 import java.net.InetAddress;
 import java.util.List;
 
-public class EsptouchDemoActivity extends Activity implements OnClickListener {
+public class EsptouchDemoActivity extends AppCompatActivity {
 	private static final String TAG = "EsptouchDemoActivity";
 
-	private TextView mTvApSsid;
-	private EditText mEdtApPassword;
-	private Button mBtnConfirm;
-	private Switch mSwitchIsSsidHidden;
+	private TextView mApSSID;
+	private TextInputLayout mApPassphrase;
+	private Button mConfirm;
+	private SwitchCompat mSwitchIsSsidHidden;
 	private EspWifiAdminSimple mWifiAdmin;
-	private Spinner mSpinnerTaskCount;
+	private Spinner mTaskCount;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.esptouch_demo_activity);
+		setSupportActionBar((android.support.v7.widget.Toolbar) findViewById(R.id.toolbar));
 
 		mWifiAdmin = new EspWifiAdminSimple(this);
-		mTvApSsid = (TextView) findViewById(R.id.tvApSssidConnected);
-		mEdtApPassword = (EditText) findViewById(R.id.edtApPassword);
-		mBtnConfirm = (Button) findViewById(R.id.btnConfirm);
-		mSwitchIsSsidHidden = (Switch) findViewById(R.id.switchIsSsidHidden);
-		mBtnConfirm.setOnClickListener(this);
+		mApSSID = (TextView) findViewById(R.id.ap_ssid);
+		mApPassphrase = (TextInputLayout) findViewById(R.id.ap_passphrase);
+		mSwitchIsSsidHidden = (SwitchCompat) findViewById(R.id.ap_ssid_hidden);
+		mTaskCount = (Spinner) findViewById(R.id.spinnerTaskResultCount);
+		mConfirm = (Button) findViewById(R.id.confirm);
+		mConfirm.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				String apSsid = mWifiAdmin.getWifiConnectedSsid();
+				if (apSsid == null)
+					apSsid = "";
+				String apPassword = mApPassphrase.getEditText().getText().toString();
+				String apBssid = mWifiAdmin.getWifiConnectedBssid();
+				Boolean isSsidHidden = mSwitchIsSsidHidden.isChecked();
+				String isSsidHiddenStr = "NO";
+				String taskResultCountStr = Integer.toString(mTaskCount.getSelectedItemPosition());
+				if (isSsidHidden)
+					isSsidHiddenStr = "YES";
 
-		mSpinnerTaskCount = (Spinner) findViewById(R.id.spinnerTaskResultCount);
+				new EsptouchAsyncTask().execute(apSsid, apBssid, apPassword, isSsidHiddenStr, taskResultCountStr);
+			}
+		});
+
 		int[] spinnerItemsInt = getResources().getIntArray(R.array.taskResultCount);
 		int length = spinnerItemsInt.length;
 		Integer[] spinnerItemsInteger = new Integer[length];
@@ -58,42 +73,19 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 			spinnerItemsInteger[i] = spinnerItemsInt[i];
 		}
 		ArrayAdapter<Integer> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, spinnerItemsInteger);
-		mSpinnerTaskCount.setAdapter(adapter);
-		mSpinnerTaskCount.setSelection(1);
+		mTaskCount.setAdapter(adapter);
+		mTaskCount.setSelection(1);
+
+		final TextView appVersion = (TextView) findViewById(R.id.app_version);
+		appVersion.setText(BuildConfig.VERSION_NAME);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		// display the connected ap's ssid
-		String apSsid = mWifiAdmin.getWifiConnectedSsid();
-		if (apSsid != null) {
-			mTvApSsid.setText(apSsid);
-		} else {
-			mTvApSsid.setText("");
-		}
-		// check whether the wifi is connected
-		boolean isApSsidEmpty = TextUtils.isEmpty(apSsid);
-		mBtnConfirm.setEnabled(!isApSsidEmpty);
-	}
-
-	@Override
-	public void onClick(View v) {
-		if (v == mBtnConfirm) {
-			String apSsid = mTvApSsid.getText().toString();
-			String apPassword = mEdtApPassword.getText().toString();
-			String apBssid = mWifiAdmin.getWifiConnectedBssid();
-			Boolean isSsidHidden = mSwitchIsSsidHidden.isChecked();
-			String isSsidHiddenStr = "NO";
-			String taskResultCountStr = Integer.toString(mSpinnerTaskCount.getSelectedItemPosition());
-			if (isSsidHidden) {
-				isSsidHiddenStr = "YES";
-			}
-			if (BuildConfig.DEBUG) {
-				Log.d(TAG, "mBtnConfirm is clicked, mEdtApSsid = " + apSsid + ", " + " mEdtApPassword = " + apPassword);
-			}
-			new EsptouchAsyncTask().execute(apSsid, apBssid, apPassword, isSsidHiddenStr, taskResultCountStr);
-		}
+		final String apSsid = mWifiAdmin.getWifiConnectedSsid();
+		mApSSID.setText(getResources().getString(R.string.tvApSsidTitle, (apSsid == null) ? "" : apSsid));
+		mConfirm.setEnabled(!TextUtils.isEmpty(apSsid));
 	}
 
 	private class EsptouchAsyncTask extends AsyncTask<String, EsptouchResult, List<EsptouchResult>>
@@ -163,7 +155,7 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 		protected void onPostExecute(List<EsptouchResult> result) {
 			mMulticastLock.release();
 			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
-			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText("Confirm");
+			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText(R.string.btnConfirmTitle);
 			EsptouchResult firstResult = result.get(0);
 			// check whether the task is cancelled and no results received
 			if (!firstResult.isCancelled()) {
