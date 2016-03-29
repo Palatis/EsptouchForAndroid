@@ -3,7 +3,7 @@ package com.espressif.iot.esptouch.protocol;
 import com.espressif.iot.esptouch.task.ICodeData;
 import com.espressif.iot.esptouch.util.ByteUtil;
 import com.espressif.iot.esptouch.util.CRC8;
-import com.espressif.iot.esptouch.util.EspNetUtil;
+import com.espressif.iot.esptouch.demo_activity.EspNetUtil;
 
 import java.net.InetAddress;
 

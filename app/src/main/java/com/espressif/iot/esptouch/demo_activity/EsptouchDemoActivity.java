@@ -2,8 +2,10 @@ package com.espressif.iot.esptouch.demo_activity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -20,10 +22,10 @@ import android.widget.Toast;
 
 import com.espressif.iot.esptouch.EsptouchResult;
 import com.espressif.iot.esptouch.EsptouchTask;
-import com.espressif.iot.esptouch.IEsptouchListener;
 import com.espressif.iot_esptouch_demo.BuildConfig;
 import com.espressif.iot_esptouch_demo.R;
 
+import java.net.InetAddress;
 import java.util.List;
 
 public class EsptouchDemoActivity extends Activity implements OnClickListener {
@@ -103,15 +105,13 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 				Log.d(TAG, "mBtnConfirm is clicked, mEdtApSsid = " + apSsid
 						+ ", " + " mEdtApPassword = " + apPassword);
 			}
-			new EsptouchAsyncTask3().execute(apSsid, apBssid, apPassword,
-					isSsidHiddenStr, taskResultCountStr);
+			new EsptouchAsyncTask().execute(apSsid, apBssid, apPassword, isSsidHiddenStr, taskResultCountStr);
 		}
 	}
 
-	private class EsptouchAsyncTask2 extends AsyncTask<String, Void, EsptouchResult> {
-
+	private class EsptouchAsyncTask extends AsyncTask<String, EsptouchResult, List<EsptouchResult>>
+			implements EsptouchTask.OnEsptouchResultListener, EsptouchTask.GetLocalInetAddressCallback {
 		private ProgressDialog mProgressDialog;
-
 		private EsptouchTask mEsptouchTask;
 		// without the lock, if the user tap confirm and cancel quickly enough,
 		// the bug will arise. the reason is follows:
@@ -120,12 +120,12 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 		// 2. task is created
 		// 3. Oops, the task should be cancelled, but it is running
 		private final Object mLock = new Object();
+		private WifiManager.MulticastLock mMulticastLock;
 
 		@Override
 		protected void onPreExecute() {
 			mProgressDialog = new ProgressDialog(EsptouchDemoActivity.this);
-			mProgressDialog
-					.setMessage("Esptouch is configuring, please wait for a moment...");
+			mProgressDialog.setMessage("Esptouch is configuring, please wait for a moment...");
 			mProgressDialog.setCanceledOnTouchOutside(false);
 			mProgressDialog.setOnCancelListener(new OnCancelListener() {
 				@Override
@@ -140,114 +140,17 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 					}
 				}
 			});
-			mProgressDialog.setButton(DialogInterface.BUTTON_POSITIVE,
-					"Waiting...", new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-						}
-					});
-			mProgressDialog.show();
-			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE)
-					.setEnabled(false);
-		}
-
-		@Override
-		protected EsptouchResult doInBackground(String... params) {
-			synchronized (mLock) {
-				String apSsid = params[0];
-				String apBssid = params[1];
-				String apPassword = params[2];
-				String isSsidHiddenStr = params[3];
-				boolean isSsidHidden = false;
-				if (isSsidHiddenStr.equals("YES")) {
-					isSsidHidden = true;
-				}
-				mEsptouchTask = new EsptouchTask(apSsid, apBssid, apPassword,
-						isSsidHidden, EsptouchDemoActivity.this);
-			}
-			return mEsptouchTask.executeForResult();
-		}
-
-		protected void onPostExecute(EsptouchResult result) {
-			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE)
-					.setEnabled(true);
-			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText(
-					"Confirm");
-			// it is unnecessary at the moment, add here just to show how to use isCancelled()
-			if (!result.isCancelled()) {
-				if (result.isSuc()) {
-					mProgressDialog.setMessage("Esptouch success, bssid = "
-							+ result.getBssid() + ",InetAddress = "
-							+ result.getInetAddress().getHostAddress());
-				} else {
-					mProgressDialog.setMessage("Esptouch fail");
-				}
-			}
-		}
-	}
-
-	private void onEsptoucResultAddedPerform(final EsptouchResult result) {
-		runOnUiThread(new Runnable() {
-
-			@Override
-			public void run() {
-				String text = result.getBssid() + " is connected to the wifi";
-				Toast.makeText(EsptouchDemoActivity.this, text,
-						Toast.LENGTH_LONG).show();
-			}
-
-		});
-	}
-
-	private IEsptouchListener myListener = new IEsptouchListener() {
-
-		@Override
-		public void onEsptouchResultAdded(final EsptouchResult result) {
-			onEsptoucResultAddedPerform(result);
-		}
-	};
-
-	private class EsptouchAsyncTask3 extends AsyncTask<String, Void, List<EsptouchResult>> {
-
-		private ProgressDialog mProgressDialog;
-
-		private EsptouchTask mEsptouchTask;
-		// without the lock, if the user tap confirm and cancel quickly enough,
-		// the bug will arise. the reason is follows:
-		// 0. task is starting created, but not finished
-		// 1. the task is cancel for the task hasn't been created, it do nothing
-		// 2. task is created
-		// 3. Oops, the task should be cancelled, but it is running
-		private final Object mLock = new Object();
-
-		@Override
-		protected void onPreExecute() {
-			mProgressDialog = new ProgressDialog(EsptouchDemoActivity.this);
-			mProgressDialog
-					.setMessage("Esptouch is configuring, please wait for a moment...");
-			mProgressDialog.setCanceledOnTouchOutside(false);
-			mProgressDialog.setOnCancelListener(new OnCancelListener() {
+			mProgressDialog.setButton(DialogInterface.BUTTON_POSITIVE, "Waiting...", new DialogInterface.OnClickListener() {
 				@Override
-				public void onCancel(DialogInterface dialog) {
-					synchronized (mLock) {
-						if (BuildConfig.DEBUG) {
-							Log.i(TAG, "progress dialog is canceled");
-						}
-						if (mEsptouchTask != null) {
-							mEsptouchTask.interrupt();
-						}
-					}
+				public void onClick(DialogInterface dialog, int which) {
 				}
 			});
-			mProgressDialog.setButton(DialogInterface.BUTTON_POSITIVE,
-					"Waiting...", new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-						}
-					});
 			mProgressDialog.show();
-			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE)
-					.setEnabled(false);
+			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
+
+			WifiManager manager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+			mMulticastLock = manager.createMulticastLock("test wifi");
+			mMulticastLock.acquire();
 		}
 
 		@Override
@@ -264,19 +167,18 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 					isSsidHidden = true;
 				}
 				taskResultCount = Integer.parseInt(taskResultCountStr);
-				mEsptouchTask = new EsptouchTask(apSsid, apBssid, apPassword,
-						isSsidHidden, EsptouchDemoActivity.this);
-				mEsptouchTask.setEsptouchListener(myListener);
+				mEsptouchTask = new EsptouchTask(apSsid, apBssid, apPassword, isSsidHidden);
+				mEsptouchTask.setEsptouchListener(this);
+				mEsptouchTask.setGetLocalInetAddressCallback(this);
 			}
 			return mEsptouchTask.executeForResults(taskResultCount);
 		}
 
 		@Override
 		protected void onPostExecute(List<EsptouchResult> result) {
-			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE)
-					.setEnabled(true);
-			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText(
-					"Confirm");
+			mMulticastLock.release();
+			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
+			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText("Confirm");
 			EsptouchResult firstResult = result.get(0);
 			// check whether the task is cancelled and no results received
 			if (!firstResult.isCancelled()) {
@@ -286,28 +188,45 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 				final int maxDisplayCount = 5;
 				// the task received some results including cancelled while
 				// executing before receiving enough results
-				if (firstResult.isSuc()) {
+				if (firstResult.isSuccess()) {
 					StringBuilder sb = new StringBuilder();
 					for (EsptouchResult resultInList : result) {
-						sb.append("Esptouch success, bssid = "
-								+ resultInList.getBssid()
-								+ ",InetAddress = "
-								+ resultInList.getInetAddress()
-								.getHostAddress() + "\n");
+						sb.append("Esptouch success, bssid = ")
+								.append(resultInList.getBssid())
+								.append(",InetAddress = ")
+								.append(resultInList.getInetAddress().getHostAddress())
+								.append("\n");
 						count++;
 						if (count >= maxDisplayCount) {
 							break;
 						}
 					}
 					if (count < result.size()) {
-						sb.append("\nthere's " + (result.size() - count)
-								+ " more result(s) without showing\n");
+						sb.append("\nthere's ")
+								.append(result.size() - count)
+								.append(" more result(s) without showing\n");
 					}
 					mProgressDialog.setMessage(sb.toString());
 				} else {
 					mProgressDialog.setMessage("Esptouch fail");
 				}
 			}
+		}
+
+		@Override
+		protected void onProgressUpdate(EsptouchResult... values) {
+			EsptouchResult result = values[0];
+			Toast.makeText(getApplicationContext(), result.getBssid() + " is connected to the wifi", Toast.LENGTH_LONG).show();
+		}
+
+		@Override
+		public void onResult(EsptouchResult result) {
+			publishProgress(result);
+		}
+
+		@Override
+		public InetAddress getLocalInetAddress() {
+			return EspNetUtil.getLocalInetAddress(getApplicationContext());
 		}
 	}
 }

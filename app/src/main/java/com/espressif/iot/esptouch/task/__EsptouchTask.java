@@ -1,17 +1,14 @@
 package com.espressif.iot.esptouch.task;
 
-import android.content.Context;
-import android.os.Looper;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.espressif.iot.esptouch.EsptouchResult;
 import com.espressif.iot.esptouch.EsptouchTask;
+import com.espressif.iot.esptouch.demo_activity.EspNetUtil;
 import com.espressif.iot.esptouch.protocol.EsptouchGenerator;
 import com.espressif.iot.esptouch.udp.UDPSocketClient;
 import com.espressif.iot.esptouch.udp.UDPSocketServer;
 import com.espressif.iot.esptouch.util.ByteUtil;
-import com.espressif.iot.esptouch.util.EspNetUtil;
 import com.espressif.iot_esptouch_demo.BuildConfig;
 
 import java.net.InetAddress;
@@ -22,7 +19,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class __EsptouchTask {
-
 	/**
 	 * one indivisible data contain 3 9bits info
 	 */
@@ -31,46 +27,41 @@ public class __EsptouchTask {
 	private static final String TAG = "EsptouchTask";
 
 	private volatile List<EsptouchResult> mEsptouchResultList;
-	private volatile boolean mIsSuc = false;
-	private volatile boolean mIsInterrupt = false;
-	private volatile boolean mIsExecuted = false;
+	private volatile boolean mSuccessed = false;
+	private volatile boolean mInterrupted = false;
+	private volatile boolean mExecuted = false;
+	private AtomicBoolean mCancelled;
 	private final UDPSocketClient mSocketClient;
 	private final UDPSocketServer mSocketServer;
 	private final String mApSsid;
 	private final String mApBssid;
 	private final boolean mIsSsidHidden;
 	private final String mApPassword;
-	private final Context mContext;
-	private AtomicBoolean mIsCancelled;
 	private EsptouchTaskParameter mParameter;
 	private volatile Map<String, Integer> mBssidTaskSucCountMap;
-	private EsptouchTask.IEsptouchListener mEsptouchListener;
 
-	public __EsptouchTask(String apSsid, String apBssid, String apPassword,
-	                      Context context, EsptouchTaskParameter parameter,
-	                      boolean isSsidHidden) {
-		if (TextUtils.isEmpty(apSsid)) {
-			throw new IllegalArgumentException(
-					"the apSsid should be null or empty");
+	private EsptouchTask.OnEsptouchResultListener mOnEsptouchResultListener;
+	private EsptouchTask.GetLocalInetAddressCallback mGetLocalInetAddressCallback;
+
+	public __EsptouchTask(String apSsid, String apBssid, String apPassword, EsptouchTaskParameter parameter, boolean isSsidHidden) {
+		if (apSsid == null || apSsid.isEmpty()) {
+			throw new IllegalArgumentException("AP SSID should not be null or empty");
 		}
-		if (apPassword == null) {
+		if (apPassword == null)
 			apPassword = "";
-		}
-		mContext = context;
 		mApSsid = apSsid;
 		mApBssid = apBssid;
 		mApPassword = apPassword;
-		mIsCancelled = new AtomicBoolean(false);
+		mCancelled = new AtomicBoolean(false);
 		mSocketClient = new UDPSocketClient();
 		mParameter = parameter;
-		mSocketServer = new UDPSocketServer(mParameter.getPortListening(),				mParameter.getWaitUdpTotalMillisecond(), context);
+		mSocketServer = new UDPSocketServer(mParameter.getPortListening(), mParameter.getWaitUdpTotalMillisecond());
 		mIsSsidHidden = isSsidHidden;
 		mEsptouchResultList = new ArrayList<>();
 		mBssidTaskSucCountMap = new HashMap<>();
 	}
 
-	private void __putEsptouchResult(boolean isSuc, String bssid,
-	                                 InetAddress inetAddress) {
+	private void __putEsptouchResult(boolean isSuc, String bssid, InetAddress inetAddress) {
 		synchronized (mEsptouchResultList) {
 			// check whether the result receive enough UDP response
 			boolean isTaskSucCountEnough = false;
@@ -79,17 +70,10 @@ public class __EsptouchTask {
 				count = 0;
 			}
 			++count;
-			if (BuildConfig.DEBUG) {
-				Log.d(TAG, "__putEsptouchResult(): count = " + count);
-			}
 			mBssidTaskSucCountMap.put(bssid, count);
 			isTaskSucCountEnough = count >= mParameter
 					.getThresholdSucBroadcastCount();
 			if (!isTaskSucCountEnough) {
-				if (BuildConfig.DEBUG) {
-					Log.d(TAG, "__putEsptouchResult(): count = " + count
-							+ ", isn't enough");
-				}
 				return;
 			}
 			// check whether the result is in the mEsptouchResultList already
@@ -102,13 +86,10 @@ public class __EsptouchTask {
 			}
 			// only add the result who isn't in the mEsptouchResultList
 			if (!isExist) {
-				if (BuildConfig.DEBUG) {
-					Log.d(TAG, "__putEsptouchResult(): put one more result");
-				}
 				final EsptouchResult esptouchResult = new EsptouchResult(isSuc, bssid, inetAddress);
 				mEsptouchResultList.add(esptouchResult);
-				if (mEsptouchListener != null) {
-					mEsptouchListener.onEsptouchResultAdded(esptouchResult);
+				if (mOnEsptouchResultListener != null) {
+					mOnEsptouchResultListener.onResult(esptouchResult);
 				}
 			}
 		}
@@ -119,7 +100,7 @@ public class __EsptouchTask {
 			if (mEsptouchResultList.isEmpty()) {
 				EsptouchResult esptouchResultFail = new EsptouchResult(false,
 						null, null);
-				esptouchResultFail.setCancelled(mIsCancelled.get());
+				esptouchResultFail.setCancelled(mCancelled.get());
 				mEsptouchResultList.add(esptouchResultFail);
 			}
 
@@ -128,8 +109,8 @@ public class __EsptouchTask {
 	}
 
 	private synchronized void __interrupt() {
-		if (!mIsInterrupt) {
-			mIsInterrupt = true;
+		if (!mInterrupted) {
+			mInterrupted = true;
 			mSocketClient.interrupt();
 			mSocketServer.interrupt();
 			// interrupt the current Thread which is used to wait for udp response
@@ -141,7 +122,7 @@ public class __EsptouchTask {
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "interrupt()");
 		}
-		mIsCancelled.set(true);
+		mCancelled.set(true);
 		__interrupt();
 	}
 
@@ -152,8 +133,7 @@ public class __EsptouchTask {
 					Log.d(TAG, "__listenAsyn() start");
 				}
 				long startTimestamp = System.currentTimeMillis();
-				byte[] apSsidAndPassword = ByteUtil.getBytesByString(mApSsid
-						+ mApPassword);
+				byte[] apSsidAndPassword = ByteUtil.getBytesByString(mApSsid + mApPassword);
 				byte expectOneByte = (byte) (apSsidAndPassword.length + 9);
 				if (BuildConfig.DEBUG) {
 					Log.i(TAG, "expectOneByte: " + (0 + expectOneByte));
@@ -161,7 +141,7 @@ public class __EsptouchTask {
 				byte receiveOneByte = -1;
 				byte[] receiveBytes = null;
 				while (mEsptouchResultList.size() < mParameter
-						.getExpectTaskResultCount() && !mIsInterrupt) {
+						.getExpectTaskResultCount() && !mInterrupted) {
 					receiveBytes = mSocketServer
 							.receiveSpecLenBytes(expectDataLen);
 					if (receiveBytes != null) {
@@ -174,14 +154,9 @@ public class __EsptouchTask {
 							Log.i(TAG, "receive correct broadcast");
 						}
 						// change the socket's timeout
-						long consume = System.currentTimeMillis()
-								- startTimestamp;
-						int timeout = (int) (mParameter
-								.getWaitUdpTotalMillisecond() - consume);
+						long consume = System.currentTimeMillis() - startTimestamp;
+						int timeout = (int) (mParameter.getWaitUdpTotalMillisecond() - consume);
 						if (timeout < 0) {
-							if (BuildConfig.DEBUG) {
-								Log.i(TAG, "esptouch timeout");
-							}
 							break;
 						} else {
 							if (BuildConfig.DEBUG) {
@@ -197,27 +172,17 @@ public class __EsptouchTask {
 										receiveBytes,
 										mParameter.getEsptouchResultOneLen(),
 										mParameter.getEsptouchResultMacLen());
-								InetAddress inetAddress = EspNetUtil
-										.parseInetAddr(
-												receiveBytes,
-												mParameter.getEsptouchResultOneLen()
-														+ mParameter.getEsptouchResultMacLen(),
-												mParameter.getEsptouchResultIpLen());
+								InetAddress inetAddress = EspNetUtil.parseInetAddr(
+										receiveBytes,
+										mParameter.getEsptouchResultOneLen() + mParameter.getEsptouchResultMacLen(),
+										mParameter.getEsptouchResultIpLen());
 								__putEsptouchResult(true, bssid, inetAddress);
 							}
 						}
-					} else {
-						if (BuildConfig.DEBUG) {
-							Log.i(TAG, "receive rubbish message, just ignore");
-						}
 					}
 				}
-				mIsSuc = mEsptouchResultList.size() >= mParameter
-						.getExpectTaskResultCount();
-				__EsptouchTask.this.__interrupt();
-				if (BuildConfig.DEBUG) {
-					Log.d(TAG, "__listenAsyn() finish");
-				}
+				mSuccessed = mEsptouchResultList.size() >= mParameter.getExpectTaskResultCount();
+				__interrupt();
 			}
 		}.start();
 	}
@@ -231,13 +196,10 @@ public class __EsptouchTask {
 		byte[][] dcBytes2 = generator.getDCBytes2();
 
 		int index = 0;
-		while (!mIsInterrupt) {
+		while (!mInterrupted) {
 			if (currentTime - lastTime >= mParameter.getTimeoutTotalCodeMillisecond()) {
-				if (BuildConfig.DEBUG) {
-					Log.d(TAG, "send gc code ");
-				}
 				// send guide code
-				while (!mIsInterrupt
+				while (!mInterrupted
 						&& System.currentTimeMillis() - currentTime < mParameter
 						.getTimeoutGuideCodeMillisecond()) {
 					mSocketClient.sendData(gcBytes2,
@@ -264,46 +226,33 @@ public class __EsptouchTask {
 			}
 		}
 
-		return mIsSuc;
+		return mSuccessed;
 	}
 
 	private void __checkTaskValid() {
-		// !!!NOTE: the esptouch task could be executed only once
-		if (this.mIsExecuted) {
-			throw new IllegalStateException(
-					"the Esptouch task could be executed only once");
-		}
-		this.mIsExecuted = true;
-	}
-
-	public EsptouchResult executeForResult() throws RuntimeException {
-		return executeForResults(1).get(0);
+		if (mGetLocalInetAddressCallback == null)
+			throw new IllegalStateException("should have GetLocalInetAddressCallback set.");
+		if (mExecuted)
+			throw new IllegalStateException("the Esptouch task could be executed only once");
+		this.mExecuted = true;
 	}
 
 	public boolean isCancelled() {
-		return this.mIsCancelled.get();
+		return this.mCancelled.get();
 	}
 
-	public List<EsptouchResult> executeForResults(int expectTaskResultCount)
-			throws RuntimeException {
+	public List<EsptouchResult> executeForResults(int expectTaskResultCount) throws RuntimeException {
 		__checkTaskValid();
 
 		mParameter.setExpectTaskResultCount(expectTaskResultCount);
 
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "execute()");
-		}
-		if (Looper.myLooper() == Looper.getMainLooper()) {
-			throw new RuntimeException(
-					"Don't call the esptouch Task at Main(UI) thread directly.");
-		}
-		InetAddress localInetAddress = EspNetUtil.getLocalInetAddress(mContext);
+		InetAddress localInetAddress = mGetLocalInetAddressCallback.getLocalInetAddress();
 		if (BuildConfig.DEBUG) {
 			Log.i(TAG, "localInetAddress: " + localInetAddress);
 		}
 		// generator the esptouch byte[][] to be transformed, which will cost
 		// some time(maybe a bit much)
-		EsptouchGenerator generator = new EsptouchGenerator(mApSsid, mApBssid,				mApPassword, localInetAddress, mIsSsidHidden);
+		EsptouchGenerator generator = new EsptouchGenerator(mApSsid, mApBssid, mApPassword, localInetAddress, mIsSsidHidden);
 		// listen the esptouch result asyn
 		__listenAsyn(mParameter.getEsptouchResultTotalLen());
 		boolean isSuc = false;
@@ -314,13 +263,13 @@ public class __EsptouchTask {
 			}
 		}
 
-		if (!mIsInterrupt) {
+		if (!mInterrupted) {
 			// wait the udp response without sending udp broadcast
 			try {
 				Thread.sleep(mParameter.getWaitUdpReceivingMillisecond());
 			} catch (InterruptedException e) {
 				// receive the udp broadcast or the user interrupt the task
-				if (this.mIsSuc) {
+				if (this.mSuccessed) {
 					return __getEsptouchResultList();
 				} else {
 					this.__interrupt();
@@ -333,7 +282,11 @@ public class __EsptouchTask {
 		return __getEsptouchResultList();
 	}
 
-	public void setEsptouchListener(EsptouchTask.IEsptouchListener esptouchListener) {
-		mEsptouchListener = esptouchListener;
+	public void setEsptouchListener(EsptouchTask.OnEsptouchResultListener listener) {
+		mOnEsptouchResultListener = listener;
+	}
+
+	public void setGetLocalInetAddressCallback(EsptouchTask.GetLocalInetAddressCallback callback) {
+		mGetLocalInetAddressCallback = callback;
 	}
 }
