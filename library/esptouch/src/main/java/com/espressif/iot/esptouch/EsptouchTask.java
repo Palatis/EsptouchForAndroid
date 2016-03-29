@@ -1,7 +1,7 @@
 package com.espressif.iot.esptouch;
 
 import com.espressif.iot.esptouch.task.EsptouchTaskParameter;
-import com.espressif.iot.esptouch.task.__EsptouchTask;
+import com.espressif.iot.esptouch.task.EspTaskImpl;
 
 import java.net.InetAddress;
 import java.util.List;
@@ -39,7 +39,7 @@ public class EsptouchTask {
 		}
 	};
 
-	public __EsptouchTask _mEsptouchTask;
+	public EspTaskImpl _mEsptouchTask;
 	private EsptouchTaskParameter _mParameter;
 
 	/**
@@ -52,7 +52,7 @@ public class EsptouchTask {
 	 */
 	public EsptouchTask(String apSsid, String apBssid, String apPassword, boolean isSsidHidden) {
 		_mParameter = new EsptouchTaskParameter();
-		_mEsptouchTask = new __EsptouchTask(apSsid, apBssid, apPassword, _mParameter, isSsidHidden);
+		_mEsptouchTask = new EspTaskImpl(apSsid, apBssid, apPassword, _mParameter, isSsidHidden);
 		_mEsptouchTask.setLogger(DUMMY_LOGGER);
 	}
 

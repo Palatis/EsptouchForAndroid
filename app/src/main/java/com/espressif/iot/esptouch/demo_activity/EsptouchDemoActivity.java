@@ -29,19 +29,13 @@ import java.net.InetAddress;
 import java.util.List;
 
 public class EsptouchDemoActivity extends Activity implements OnClickListener {
-
 	private static final String TAG = "EsptouchDemoActivity";
 
 	private TextView mTvApSsid;
-
 	private EditText mEdtApPassword;
-
 	private Button mBtnConfirm;
-
 	private Switch mSwitchIsSsidHidden;
-
 	private EspWifiAdminSimple mWifiAdmin;
-
 	private Spinner mSpinnerTaskCount;
 
 	@Override
@@ -55,10 +49,7 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 		mBtnConfirm = (Button) findViewById(R.id.btnConfirm);
 		mSwitchIsSsidHidden = (Switch) findViewById(R.id.switchIsSsidHidden);
 		mBtnConfirm.setOnClickListener(this);
-		initSpinner();
-	}
 
-	private void initSpinner() {
 		mSpinnerTaskCount = (Spinner) findViewById(R.id.spinnerTaskResultCount);
 		int[] spinnerItemsInt = getResources().getIntArray(R.array.taskResultCount);
 		int length = spinnerItemsInt.length;

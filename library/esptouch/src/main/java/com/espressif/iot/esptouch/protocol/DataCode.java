@@ -1,6 +1,5 @@
 package com.espressif.iot.esptouch.protocol;
 
-import com.espressif.iot.esptouch.task.ICodeData;
 import com.espressif.iot.esptouch.util.ByteUtil;
 import com.espressif.iot.esptouch.util.CRC8;
 

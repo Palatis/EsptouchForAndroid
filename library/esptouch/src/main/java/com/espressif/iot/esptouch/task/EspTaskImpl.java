@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class __EsptouchTask {
+public class EspTaskImpl {
 	/**
 	 * one indivisible data contain 3 9bits info
 	 */
@@ -38,7 +38,7 @@ public class __EsptouchTask {
 	private EsptouchTask.NetworkHelperCallback mNetworkHelperCallback;
 	private EsptouchTask.Logger mLogger;
 
-	public __EsptouchTask(String apSsid, String apBssid, String apPassword, EsptouchTaskParameter parameter, boolean isSsidHidden) {
+	public EspTaskImpl(String apSsid, String apBssid, String apPassword, EsptouchTaskParameter parameter, boolean isSsidHidden) {
 		if (apSsid == null || apSsid.isEmpty())
 			throw new IllegalArgumentException("AP SSID should not be null or empty");
 

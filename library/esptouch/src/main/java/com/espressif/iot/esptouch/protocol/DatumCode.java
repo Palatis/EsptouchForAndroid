@@ -1,9 +1,7 @@
 package com.espressif.iot.esptouch.protocol;
 
-import com.espressif.iot.esptouch.task.ICodeData;
 import com.espressif.iot.esptouch.util.ByteUtil;
 import com.espressif.iot.esptouch.util.CRC8;
-import com.espressif.iot.esptouch.demo_activity.EspNetUtil;
 
 import java.net.InetAddress;
 
@@ -37,7 +35,7 @@ public class DatumCode implements ICodeData {
 		char apSsidCrc = (char) crc.getValue();
 
 		crc.reset();
-		crc.update(EspNetUtil.parseBssid2bytes(apBssid));
+		crc.update(parseBssid2bytes(apBssid));
 		char apBssidCrc = (char) crc.getValue();
 
 		char apSsidLen = (char) ByteUtil.getBytesByString(apSsid).length;
@@ -139,5 +137,20 @@ public class DatumCode implements ICodeData {
 			dataU8s[i] = (char) (ByteUtil.combine2bytesToU16(high, low) + EXTRA_LEN);
 		}
 		return dataU8s;
+	}
+
+	/**
+	 * parse bssid
+	 *
+	 * @param bssid the bssid
+	 * @return byte converted from bssid
+	 */
+	private static byte[] parseBssid2bytes(String bssid) {
+		String bssidSplits[] = bssid.split(":");
+		byte[] result = new byte[bssidSplits.length];
+		for (int i = 0; i < bssidSplits.length; i++) {
+			result[i] = (byte) Integer.parseInt(bssidSplits[i], 16);
+		}
+		return result;
 	}
 }
