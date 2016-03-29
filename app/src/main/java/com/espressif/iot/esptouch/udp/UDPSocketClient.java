@@ -1,5 +1,9 @@
 package com.espressif.iot.esptouch.udp;
 
+import android.util.Log;
+
+import com.espressif.iot_esptouch_demo.BuildConfig;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -7,15 +11,11 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
-import com.espressif.iot.esptouch.task.__IEsptouchTask;
-
-import android.util.Log;
-
 /**
  * this class is used to help send UDP data according to length
- * 
+ *
  * @author afunx
- * 
+ *
  */
 public class UDPSocketClient {
 
@@ -30,7 +30,7 @@ public class UDPSocketClient {
 			this.mIsStop = false;
 			this.mIsClosed = false;
 		} catch (SocketException e) {
-			if (__IEsptouchTask.DEBUG) {
+			if (BuildConfig.DEBUG) {
 				Log.e(TAG, "SocketException");
 			}
 			e.printStackTrace();
@@ -44,7 +44,7 @@ public class UDPSocketClient {
 	}
 
 	public void interrupt() {
-		if (__IEsptouchTask.DEBUG) {
+		if (BuildConfig.DEBUG) {
 			Log.i(TAG, "USPSocketClient is interrupt");
 		}
 		this.mIsStop = true;
@@ -62,10 +62,10 @@ public class UDPSocketClient {
 
 	/**
 	 * send the data by UDP
-	 * 
+	 *
 	 * @param data
 	 *            the data to be sent
-	 * @param targetHost
+	 * @param targetHostName
 	 *            the host name of target, e.g. 192.168.1.101
 	 * @param targetPort
 	 *            the port of target
@@ -76,18 +76,18 @@ public class UDPSocketClient {
 			long interval) {
 		sendData(data, 0, data.length, targetHostName, targetPort, interval);
 	}
-	
-	
+
+
 	/**
 	 * send the data by UDP
-	 * 
+	 *
 	 * @param data
 	 *            the data to be sent
 	 * @param offset
 	 * 			  the offset which data to be sent
 	 * @param count
 	 * 			  the count of the data
-	 * @param targetHost
+	 * @param targetHostName
 	 *            the host name of target, e.g. 192.168.1.101
 	 * @param targetPort
 	 *            the port of target
@@ -97,7 +97,7 @@ public class UDPSocketClient {
 	public void sendData(byte[][] data, int offset, int count,
 			String targetHostName, int targetPort, long interval) {
 		if ((data == null) || (data.length <= 0)) {
-			if (__IEsptouchTask.DEBUG) {
+			if (BuildConfig.DEBUG) {
 				Log.e(TAG, "sendData(): data == null or length <= 0");
 			}
 			return;
@@ -113,14 +113,14 @@ public class UDPSocketClient {
 						InetAddress.getByName(targetHostName), targetPort);
 				this.mSocket.send(localDatagramPacket);
 			} catch (UnknownHostException e) {
-				if (__IEsptouchTask.DEBUG) {
+				if (BuildConfig.DEBUG) {
 					Log.e(TAG, "sendData(): UnknownHostException");
 				}
 				e.printStackTrace();
 				mIsStop = true;
 				break;
 			} catch (IOException e) {
-				if (__IEsptouchTask.DEBUG) {
+				if (BuildConfig.DEBUG) {
 					Log.e(TAG, "sendData(): IOException, but just ignore it");
 				}
 				// for the Ap will make some troubles when the phone send too many UDP packets,
@@ -130,7 +130,7 @@ public class UDPSocketClient {
 				Thread.sleep(interval);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-				if (__IEsptouchTask.DEBUG) {
+				if (BuildConfig.DEBUG) {
 					Log.e(TAG, "sendData is Interrupted");
 				}
 				mIsStop = true;

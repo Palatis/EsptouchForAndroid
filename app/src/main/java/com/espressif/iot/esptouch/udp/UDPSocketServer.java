@@ -1,17 +1,16 @@
 package com.espressif.iot.esptouch.udp;
 
+import android.content.Context;
+import android.net.wifi.WifiManager;
+import android.util.Log;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.Arrays;
 
-import android.content.Context;
-import android.net.wifi.WifiManager;
-import android.util.Log;
-
 public class UDPSocketServer {
-
 	private static final String TAG = "UDPSocketServer";
 	private DatagramPacket mReceivePacket;
 	private DatagramSocket mServerSocket;
@@ -38,7 +37,7 @@ public class UDPSocketServer {
 
 	/**
 	 * Constructor of UDP Socket Server
-	 * 
+	 *
 	 * @param port
 	 *            the Socket Server port
 	 * @param socketTimeout
@@ -67,7 +66,7 @@ public class UDPSocketServer {
 
 	/**
 	 * Set the socket timeout in milliseconds
-	 * 
+	 *
 	 * @param timeout
 	 *            the timeout in milliseconds or 0 for no timeout.
 	 * @return true whether the timeout is set suc
@@ -84,7 +83,7 @@ public class UDPSocketServer {
 
 	/**
 	 * Receive one byte from the port and convert it into String
-	 * 
+	 *
 	 * @return
 	 */
 	public byte receiveOneByte() {
@@ -92,14 +91,14 @@ public class UDPSocketServer {
 		try {
 			acquireLock();
 			mServerSocket.receive(mReceivePacket);
-			Log.d(TAG, "receive: " + (0 + mReceivePacket.getData()[0]));
+			Log.d(TAG, "receive: " + (mReceivePacket.getData()[0]));
 			return mReceivePacket.getData()[0];
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return Byte.MIN_VALUE;
 	}
-	
+
 	/**
 	 * Receive specific length bytes from the port and convert it into String
 	 * 21,24,-2,52,-102,-93,-60

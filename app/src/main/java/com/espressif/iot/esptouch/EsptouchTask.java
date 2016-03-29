@@ -1,21 +1,30 @@
 package com.espressif.iot.esptouch;
 
-import java.util.List;
-
 import android.content.Context;
 
 import com.espressif.iot.esptouch.task.EsptouchTaskParameter;
-import com.espressif.iot.esptouch.task.IEsptouchTaskParameter;
 import com.espressif.iot.esptouch.task.__EsptouchTask;
 
-public class EsptouchTask implements IEsptouchTask {
+import java.util.List;
+
+public class EsptouchTask {
+	public interface IEsptouchListener {
+		/**
+		 * when new esptouch result is added, the listener will call
+		 * onEsptouchResultAdded callback
+		 *
+		 * @param result
+		 *            the Esptouch result
+		 */
+		void onEsptouchResultAdded(EsptouchResult result);
+	}
 
 	public __EsptouchTask _mEsptouchTask;
-	private IEsptouchTaskParameter _mParameter;
+	private EsptouchTaskParameter _mParameter;
 
 	/**
 	 * Constructor of EsptouchTask
-	 * 
+	 *
 	 * @param apSsid
 	 *            the Ap's ssid
 	 * @param apBssid
@@ -36,7 +45,7 @@ public class EsptouchTask implements IEsptouchTask {
 
 	/**
 	 * Constructor of EsptouchTask
-	 * 
+	 *
 	 * @param apSsid
 	 *            the Ap's ssid
 	 * @param apBssid
@@ -58,23 +67,19 @@ public class EsptouchTask implements IEsptouchTask {
 				context, _mParameter, isSsidHidden);
 	}
 
-	@Override
 	public void interrupt() {
 		_mEsptouchTask.interrupt();
 	}
 
-	@Override
-	public IEsptouchResult executeForResult() throws RuntimeException {
+	public EsptouchResult executeForResult() throws RuntimeException {
 		return _mEsptouchTask.executeForResult();
 	}
 
-	@Override
 	public boolean isCancelled() {
 		return _mEsptouchTask.isCancelled();
 	}
 
-	@Override
-	public List<IEsptouchResult> executeForResults(int expectTaskResultCount)
+	public List<EsptouchResult> executeForResults(int expectTaskResultCount)
 			throws RuntimeException {
 		if (expectTaskResultCount <= 0) {
 			expectTaskResultCount = Integer.MAX_VALUE;
@@ -82,7 +87,6 @@ public class EsptouchTask implements IEsptouchTask {
 		return _mEsptouchTask.executeForResults(expectTaskResultCount);
 	}
 
-	@Override
 	public void setEsptouchListener(IEsptouchListener esptouchListener) {
 		_mEsptouchTask.setEsptouchListener(esptouchListener);
 	}

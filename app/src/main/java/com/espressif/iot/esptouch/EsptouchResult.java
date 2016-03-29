@@ -3,47 +3,42 @@ package com.espressif.iot.esptouch;
 import java.net.InetAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class EsptouchResult implements IEsptouchResult {
+public class EsptouchResult {
 
-	private final boolean mIsSuc;
+	private final boolean mSuccess;
 	private final String mBssid;
 	private final InetAddress mInetAddress;
-	private AtomicBoolean mIsCancelled;
+	private AtomicBoolean mCancelled;
 
 	/**
-	 * Constructor of EsptouchResult 
-	 * 
+	 * Constructor of EsptouchResult
+	 *
 	 * @param isSuc whether the esptouch task is executed suc
 	 * @param bssid the device's bssid
 	 * @param inetAddress the device's ip address
 	 */
 	public EsptouchResult(boolean isSuc, String bssid,InetAddress inetAddress) {
-		this.mIsSuc = isSuc;
+		this.mSuccess = isSuc;
 		this.mBssid = bssid;
 		this.mInetAddress = inetAddress;
-		this.mIsCancelled = new AtomicBoolean(false);
+		this.mCancelled = new AtomicBoolean(false);
 	}
 
-	@Override
 	public boolean isSuc() {
-		return this.mIsSuc;
+		return this.mSuccess;
 	}
 
-	@Override
 	public String getBssid() {
 		return this.mBssid;
 	}
-
-	@Override
 	public boolean isCancelled() {
-		return mIsCancelled.get();
-	}
-	
-	public void setIsCancelled(boolean isCancelled){
-		this.mIsCancelled.set(isCancelled);
+		return mCancelled.get();
 	}
 
-	@Override
+	public void setCancelled(boolean isCancelled){
+		this.mCancelled.set(isCancelled);
+	}
+
 	public InetAddress getInetAddress() {
 		return this.mInetAddress;
 	}

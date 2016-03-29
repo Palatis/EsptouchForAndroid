@@ -1,14 +1,5 @@
 package com.espressif.iot.esptouch.demo_activity;
 
-import java.util.List;
-
-import com.espressif.iot.esptouch.EsptouchTask;
-import com.espressif.iot.esptouch.IEsptouchListener;
-import com.espressif.iot.esptouch.IEsptouchResult;
-import com.espressif.iot.esptouch.IEsptouchTask;
-import com.espressif.iot.esptouch.task.__IEsptouchTask;
-import com.espressif.iot_esptouch_demo.R;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -27,6 +18,14 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.espressif.iot.esptouch.EsptouchResult;
+import com.espressif.iot.esptouch.EsptouchTask;
+import com.espressif.iot.esptouch.IEsptouchListener;
+import com.espressif.iot_esptouch_demo.BuildConfig;
+import com.espressif.iot_esptouch_demo.R;
+
+import java.util.List;
+
 public class EsptouchDemoActivity extends Activity implements OnClickListener {
 
 	private static final String TAG = "EsptouchDemoActivity";
@@ -36,11 +35,11 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 	private EditText mEdtApPassword;
 
 	private Button mBtnConfirm;
-	
+
 	private Switch mSwitchIsSsidHidden;
 
 	private EspWifiAdminSimple mWifiAdmin;
-	
+
 	private Spinner mSpinnerTaskCount;
 
 	@Override
@@ -56,15 +55,13 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 		mBtnConfirm.setOnClickListener(this);
 		initSpinner();
 	}
-	
-	private void initSpinner()
-	{
+
+	private void initSpinner() {
 		mSpinnerTaskCount = (Spinner) findViewById(R.id.spinnerTaskResultCount);
 		int[] spinnerItemsInt = getResources().getIntArray(R.array.taskResultCount);
 		int length = spinnerItemsInt.length;
 		Integer[] spinnerItemsInteger = new Integer[length];
-		for(int i=0;i<length;i++)
-		{
+		for (int i = 0; i < length; i++) {
 			spinnerItemsInteger[i] = spinnerItemsInt[i];
 		}
 		ArrayAdapter<Integer> adapter = new ArrayAdapter<Integer>(this,
@@ -99,11 +96,10 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 			String isSsidHiddenStr = "NO";
 			String taskResultCountStr = Integer.toString(mSpinnerTaskCount
 					.getSelectedItemPosition());
-			if (isSsidHidden) 
-			{
+			if (isSsidHidden) {
 				isSsidHiddenStr = "YES";
 			}
-			if (__IEsptouchTask.DEBUG) {
+			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "mBtnConfirm is clicked, mEdtApSsid = " + apSsid
 						+ ", " + " mEdtApPassword = " + apPassword);
 			}
@@ -111,12 +107,12 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 					isSsidHiddenStr, taskResultCountStr);
 		}
 	}
-	
-	private class EsptouchAsyncTask2 extends AsyncTask<String, Void, IEsptouchResult> {
+
+	private class EsptouchAsyncTask2 extends AsyncTask<String, Void, EsptouchResult> {
 
 		private ProgressDialog mProgressDialog;
 
-		private IEsptouchTask mEsptouchTask;
+		private EsptouchTask mEsptouchTask;
 		// without the lock, if the user tap confirm and cancel quickly enough,
 		// the bug will arise. the reason is follows:
 		// 0. task is starting created, but not finished
@@ -135,7 +131,7 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 				@Override
 				public void onCancel(DialogInterface dialog) {
 					synchronized (mLock) {
-						if (__IEsptouchTask.DEBUG) {
+						if (BuildConfig.DEBUG) {
 							Log.i(TAG, "progress dialog is canceled");
 						}
 						if (mEsptouchTask != null) {
@@ -156,7 +152,7 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 		}
 
 		@Override
-		protected IEsptouchResult doInBackground(String... params) {
+		protected EsptouchResult doInBackground(String... params) {
 			synchronized (mLock) {
 				String apSsid = params[0];
 				String apBssid = params[1];
@@ -169,12 +165,10 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 				mEsptouchTask = new EsptouchTask(apSsid, apBssid, apPassword,
 						isSsidHidden, EsptouchDemoActivity.this);
 			}
-			IEsptouchResult result = mEsptouchTask.executeForResult();
-			return result;
+			return mEsptouchTask.executeForResult();
 		}
 
-		@Override
-		protected void onPostExecute(IEsptouchResult result) {
+		protected void onPostExecute(EsptouchResult result) {
 			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE)
 					.setEnabled(true);
 			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText(
@@ -191,8 +185,8 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 			}
 		}
 	}
-	
-	private void onEsptoucResultAddedPerform(final IEsptouchResult result) {
+
+	private void onEsptoucResultAddedPerform(final EsptouchResult result) {
 		runOnUiThread(new Runnable() {
 
 			@Override
@@ -208,16 +202,16 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 	private IEsptouchListener myListener = new IEsptouchListener() {
 
 		@Override
-		public void onEsptouchResultAdded(final IEsptouchResult result) {
+		public void onEsptouchResultAdded(final EsptouchResult result) {
 			onEsptoucResultAddedPerform(result);
 		}
 	};
-	
-	private class EsptouchAsyncTask3 extends AsyncTask<String, Void, List<IEsptouchResult>> {
+
+	private class EsptouchAsyncTask3 extends AsyncTask<String, Void, List<EsptouchResult>> {
 
 		private ProgressDialog mProgressDialog;
 
-		private IEsptouchTask mEsptouchTask;
+		private EsptouchTask mEsptouchTask;
 		// without the lock, if the user tap confirm and cancel quickly enough,
 		// the bug will arise. the reason is follows:
 		// 0. task is starting created, but not finished
@@ -236,7 +230,7 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 				@Override
 				public void onCancel(DialogInterface dialog) {
 					synchronized (mLock) {
-						if (__IEsptouchTask.DEBUG) {
+						if (BuildConfig.DEBUG) {
 							Log.i(TAG, "progress dialog is canceled");
 						}
 						if (mEsptouchTask != null) {
@@ -257,7 +251,7 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 		}
 
 		@Override
-		protected List<IEsptouchResult> doInBackground(String... params) {
+		protected List<EsptouchResult> doInBackground(String... params) {
 			int taskResultCount = -1;
 			synchronized (mLock) {
 				String apSsid = params[0];
@@ -274,17 +268,16 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 						isSsidHidden, EsptouchDemoActivity.this);
 				mEsptouchTask.setEsptouchListener(myListener);
 			}
-			List<IEsptouchResult> resultList = mEsptouchTask.executeForResults(taskResultCount);
-			return resultList;
+			return mEsptouchTask.executeForResults(taskResultCount);
 		}
 
 		@Override
-		protected void onPostExecute(List<IEsptouchResult> result) {
+		protected void onPostExecute(List<EsptouchResult> result) {
 			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE)
 					.setEnabled(true);
 			mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText(
 					"Confirm");
-			IEsptouchResult firstResult = result.get(0);
+			EsptouchResult firstResult = result.get(0);
 			// check whether the task is cancelled and no results received
 			if (!firstResult.isCancelled()) {
 				int count = 0;
@@ -295,12 +288,12 @@ public class EsptouchDemoActivity extends Activity implements OnClickListener {
 				// executing before receiving enough results
 				if (firstResult.isSuc()) {
 					StringBuilder sb = new StringBuilder();
-					for (IEsptouchResult resultInList : result) {
+					for (EsptouchResult resultInList : result) {
 						sb.append("Esptouch success, bssid = "
 								+ resultInList.getBssid()
 								+ ",InetAddress = "
 								+ resultInList.getInetAddress()
-										.getHostAddress() + "\n");
+								.getHostAddress() + "\n");
 						count++;
 						if (count >= maxDisplayCount) {
 							break;

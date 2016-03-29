@@ -4,7 +4,6 @@ import com.espressif.iot.esptouch.task.ICodeData;
 import com.espressif.iot.esptouch.util.ByteUtil;
 
 public class GuideCode implements ICodeData {
-
 	public static final int GUIDE_CODE_LEN = 4;
 
 	@Override

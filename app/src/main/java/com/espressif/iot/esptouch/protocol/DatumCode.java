@@ -1,62 +1,61 @@
 package com.espressif.iot.esptouch.protocol;
 
-import java.net.InetAddress;
-
 import com.espressif.iot.esptouch.task.ICodeData;
 import com.espressif.iot.esptouch.util.ByteUtil;
 import com.espressif.iot.esptouch.util.CRC8;
 import com.espressif.iot.esptouch.util.EspNetUtil;
 
+import java.net.InetAddress;
+
 public class DatumCode implements ICodeData {
-	
 	// define by the Esptouch protocol, all of the datum code should add 1 at last to prevent 0
 	private static final int EXTRA_LEN = 40;
 	private static final int EXTRA_HEAD_LEN = 5;
-	
+
 	private final DataCode[] mDataCodes;
-	
+
 	/**
 	 * Constructor of DatumCode
-	 * @param apSsid the Ap's ssid
-	 * @param apBssid the Ap's bssid
-	 * @param apPassword the Ap's password
-	 * @param ipAddress the ip address of the phone or pad
+	 *
+	 * @param apSsid       the Ap's ssid
+	 * @param apBssid      the Ap's bssid
+	 * @param apPassword   the Ap's password
+	 * @param ipAddress    the ip address of the phone or pad
 	 * @param isSsidHidden whether the Ap's ssid is hidden
 	 */
-	public DatumCode(String apSsid, String apBssid, String apPassword,
-			InetAddress ipAddress, boolean isSsidHiden) {
+	public DatumCode(String apSsid, String apBssid, String apPassword, InetAddress ipAddress, boolean isSsidHidden) {
 		// Data = total len(1 byte) + apPwd len(1 byte) + SSID CRC(1 byte) +
 		// BSSID CRC(1 byte) + TOTAL XOR(1 byte)+ ipAddress(4 byte) + apPwd + apSsid apPwdLen <=
 		// 105 at the moment
-		
+
 		// total xor
 		char totalXor = 0;
-		
+
 		char apPwdLen = (char) ByteUtil.getBytesByString(apPassword).length;
 		CRC8 crc = new CRC8();
 		crc.update(ByteUtil.getBytesByString(apSsid));
 		char apSsidCrc = (char) crc.getValue();
-		
+
 		crc.reset();
 		crc.update(EspNetUtil.parseBssid2bytes(apBssid));
 		char apBssidCrc = (char) crc.getValue();
-		
+
 		char apSsidLen = (char) ByteUtil.getBytesByString(apSsid).length;
 		// hostname parse
 		String ipAddrStrs[] = ipAddress.getHostAddress().split("\\.");
 		int ipLen = ipAddrStrs.length;
-		
+
 		char ipAddrChars[] = new char[ipLen];
 		// only support ipv4 at the moment
 		for (int i = 0; i < ipLen; ++i) {
 			ipAddrChars[i] = (char) Integer.parseInt(ipAddrStrs[i]);
 		}
-		
-		
+
+
 		char _totalLen = (char) (EXTRA_HEAD_LEN + ipLen + apPwdLen + apSsidLen);
-		char totalLen = isSsidHiden ? (char) (EXTRA_HEAD_LEN + ipLen + apPwdLen + apSsidLen)
+		char totalLen = isSsidHidden ? (char) (EXTRA_HEAD_LEN + ipLen + apPwdLen + apSsidLen)
 				: (char) (EXTRA_HEAD_LEN + ipLen + apPwdLen);
-		
+
 		// build data codes
 		mDataCodes = new DataCode[totalLen];
 		mDataCodes[0] = new DataCode(_totalLen, 0);
@@ -72,10 +71,10 @@ public class DatumCode implements ICodeData {
 			mDataCodes[i + EXTRA_HEAD_LEN] = new DataCode(ipAddrChars[i], i + EXTRA_HEAD_LEN);
 			totalXor ^= ipAddrChars[i];
 		}
-		
+
 		byte[] apPwdBytes = ByteUtil.getBytesByString(apPassword);
 		char[] apPwdChars = new char[apPwdBytes.length];
-		for (int i = 0;i < apPwdBytes.length; i++) {
+		for (int i = 0; i < apPwdBytes.length; i++) {
 			apPwdChars[i] = ByteUtil.convertByte2Uint8(apPwdBytes[i]);
 		}
 		for (int i = 0; i < apPwdChars.length; i++) {
@@ -86,40 +85,39 @@ public class DatumCode implements ICodeData {
 
 		byte[] apSsidBytes = ByteUtil.getBytesByString(apSsid);
 		char[] apSsidChars = new char[apSsidBytes.length];
-		
+
 		// totalXor will xor apSsidChars no matter whether the ssid is hidden
 		for (int i = 0; i < apSsidBytes.length; i++) {
 			apSsidChars[i] = ByteUtil.convertByte2Uint8(apSsidBytes[i]);
 			totalXor ^= apSsidChars[i];
 		}
-		
-		if (isSsidHiden) {
+
+		if (isSsidHidden) {
 			for (int i = 0; i < apSsidChars.length; i++) {
 				mDataCodes[i + EXTRA_HEAD_LEN + ipLen + apPwdLen] = new DataCode(
 						apSsidChars[i], i + EXTRA_HEAD_LEN + ipLen + apPwdLen);
 			}
 		}
-		
+
 		// set total xor last
 		mDataCodes[4] = new DataCode(totalXor, 4);
 	}
-	
+
 	@Override
 	public byte[] getBytes() {
 		byte[] datumCode = new byte[mDataCodes.length * DataCode.DATA_CODE_LEN];
 		for (int i = 0; i < mDataCodes.length; i++) {
-			System.arraycopy(mDataCodes[i].getBytes(), 0, datumCode, i
-					* DataCode.DATA_CODE_LEN, DataCode.DATA_CODE_LEN);
+			System.arraycopy(mDataCodes[i].getBytes(), 0, datumCode, i * DataCode.DATA_CODE_LEN, DataCode.DATA_CODE_LEN);
 		}
 		return datumCode;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		byte[] dataBytes = getBytes();
-		for (int i = 0; i < dataBytes.length; i++) {
-			String hexString = ByteUtil.convertByte2HexString(dataBytes[i]);
+		for (byte dataByte : dataBytes) {
+			String hexString = ByteUtil.convertByte2HexString(dataByte);
 			sb.append("0x");
 			if (hexString.length() == 1) {
 				sb.append("0");
@@ -128,7 +126,7 @@ public class DatumCode implements ICodeData {
 		}
 		return sb.toString();
 	}
-	
+
 	@Override
 	public char[] getU8s() {
 		byte[] dataBytes = getBytes();
