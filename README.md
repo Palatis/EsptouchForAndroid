@@ -2,7 +2,7 @@
 
 This is a refactored version of [EsptouchForAndroid](https://github.com/EspressifApp/EsptouchForAndroid) from [EspressifApp](https://github.com/EspressifApp/).
 
-Consult the upstream [README.md] for more information.
+Consult the [upstream README.md](README.upstream.md) for more information.
 
 The major difference are:
 1. stripped all Android specific codes from the protocol library, so it can be used on other platforms.
