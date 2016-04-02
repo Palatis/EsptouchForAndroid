@@ -15,7 +15,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
@@ -26,6 +27,7 @@ android {
 
 dependencies {
     compile project(':esptouch-android')
-    compile 'com.android.support:support-v4:23.2.1'
-    compile 'com.android.support:design:23.2.1'
+    compile "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
+    compile "com.android.support:support-v4:${rootProject.ext.supportLibVersion}"
+    compile "com.android.support:design:${rootProject.ext.supportLibVersion}"
 }
