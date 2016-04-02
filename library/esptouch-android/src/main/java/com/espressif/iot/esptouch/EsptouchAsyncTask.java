@@ -52,8 +52,6 @@ public abstract class EsptouchAsyncTask
 
 		mResultsWanted = resultsWanted;
 
-
-
 		if (passphrase == null)
 			passphrase = "";
 
@@ -138,7 +136,7 @@ public abstract class EsptouchAsyncTask
 	@CallSuper
 	@Override
 	protected void onCancelled(Void ignored) {
-		cleanUp();
+		super.onCancelled(ignored);
 	}
 
 	/**
@@ -166,7 +164,7 @@ public abstract class EsptouchAsyncTask
 	 */
 	@WorkerThread
 	@Override
-	protected Void doInBackground(Void... ignored) {
+	protected final Void doInBackground(Void... ignored) {
 		if (isCancelled())
 			return null;
 		try {
