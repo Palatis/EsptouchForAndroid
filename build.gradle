@@ -38,9 +38,13 @@ def getVersionName = { ->
 }
 
 ext {
+    supportLibVersion = '23.2.1'
+
     versionCode = getVersionCode()
     versionName = getVersionName()
+
     pomGroupId = 'tw.idv.palatis'
+
     scmUrl = 'https://github.com/Palatis/EsptouchForAndroid'
     scmConnectionUrl = 'https://github.com/Palatis/EsptouchForAndroid'
     scmDeveloperConnectionUrl = 'git+ssh://git@github.com:Palatis/EsptouchForAndroid.git'
