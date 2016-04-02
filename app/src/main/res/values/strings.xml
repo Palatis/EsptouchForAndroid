@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Espressif ESPTouch</string>
-    <string name="tvApSsidTitle">SSID: %1$s</string>
-    <string name="tvPasswordTitle">Password: </string>
+
+    <string name="ssid">SSID: %1$s</string>
+    <string name="passphrase">Passphrase:</string>
     <string name="switchIsSsidHiddenTitle">SSID is Hidden</string>
-    <string name="spinnerTaskResultCountTitle">Task result count: </string>
-    <string name="btnConfirmTitle">Confirm</string>
-    <string name="ap_passphrase">AP Passphrase:</string>
+    <string name="spinnerTaskResultCountTitle">Task result count:</string>
+    <string name="waiting">Waiting…</string>
+    <string name="begin_smartconfig">Begin SmartConfig</string>
+    <string name="smartconfig">SmartConfig</string>
+    <string name="starting">Starting...</string>
+    <string name="completed">Completed!</string>
+    <string name="user_canceled">User canceled...</string>
 </resources>
