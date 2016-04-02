@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
   <groupId>tw.idv.palatis</groupId>
-  <artifactId>esptouch-java</artifactId>
+  <artifactId>esptouch-android</artifactId>
   <versioning>
     <release>v0.3.4.3-palatis-14-gc18215a</release>
     <versions>
       <version>v0.3.4.3-palatis-14-gc18215a</version>
     </versions>
-    <lastUpdated>20160402215912</lastUpdated>
+    <lastUpdated>20160402215911</lastUpdated>
   </versioning>
 </metadata>
