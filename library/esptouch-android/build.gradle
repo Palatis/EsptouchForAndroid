@@ -1,0 +1,93 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.3"
+
+    defaultConfig {
+        minSdkVersion 4
+        targetSdkVersion 23
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
+
+        resValue 'string', 'library_EsptouchForAndroid_libraryVersion', rootProject.ext.versionName
+
+        consumerProguardFiles 'proguard-esptouch-android.pro'
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile project(':esptouch-java') {
+        group rootProject.ext.pomGroupId
+        version 'v0.3.4.3-palatis+'
+    }
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:support-annotations:23.2.1'
+}
+
+def pomArtifactId = 'esptouch-android'
+
+task androidJavadocs(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+}
+
+task androidJavadocsJar(type: Jar) {
+    classifier = 'javadoc'
+    baseName = pomArtifactId
+    from androidJavadocs.destinationDir
+}
+
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    baseName = pomArtifactId
+    from android.sourceSets.main.java.srcDirs
+}
+
+artifacts {
+    archives androidSourcesJar
+    archives androidJavadocsJar
+}
+
+install {
+    repositories {
+        mavenInstaller {
+            pom.version = rootProject.ext.versionName
+            pom.groupId = rootProject.ext.pomGroupId
+            pom.artifactId = pomArtifactId
+        }
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file:///${rootProject.rootDir}/maven-repository")
+            pom.project {
+                version = rootProject.ext.versionName
+                groupId = rootProject.ext.pomGroupId
+                artifactId = pomArtifactId
+                licenses {
+                    license {
+                        name 'ESPRSSIF MIT License v1.0'
+                        url 'https://github.com/Palatis/EsptouchForAndroid/blob/master/ESPRESSIF%20MIT%20LICENSE%20V1.md'
+                        distribution 'repo'
+                    }
+                }
+                scm {
+                    url rootProject.ext.scmUrl
+                    connection rootProject.ext.scmConnectionUrl
+                    developerConnection rootProject.ext.scmDeveloperConnectionUrl
+                }
+            }
+        }
+    }
+}

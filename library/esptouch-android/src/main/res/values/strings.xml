@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">ESPTouch Android Library</string>
+
+    <!-- for AboutLibraries -->
+    <string name="define_EsptouchForAndroid"/>
+    <string name="library_EsptouchForAndroid_author">Victor Tseng</string>
+    <string name="library_EsptouchForAndroid_authorWebsite">https://github.com/Palatis/EsptouchForAndroid</string>
+    <string name="library_EsptouchForAndroid_libraryName">ESPTouch for Android</string>
+    <string name="library_EsptouchForAndroid_libraryDescription">A refactored version of EsptouchForAndroid from EspressifApp. EspTouch (SmartConfig) is a protocol to connect esp8266 to existing wifi, alike wifi WPS (Wireless Protected Setup).</string>
+    <!-- define this with resValue in build.gradle -->
+    <!--<string name="library_EsptouchForAndroid_libraryVersion"/>-->
+    <string name="library_EsptouchForAndroid_libraryWebsite">https://github.com/Palatis/EsptouchForAndroid</string>
+    <string name="library_EsptouchForAndroid_licenseVersion">1</string>
+    <string name="library_EsptouchForAndroid_licenseLink">https://github.com/Palatis/EsptouchForAndroid/blob/master/ESPRESSIF%20MIT%20LICENSE%20V1.md</string>
+    <string name="library_EsptouchForAndroid_licenseContent">
+        <![CDATA[<h1>ESPRSSIF MIT License Version 1</h1>
+        <p>Copyright © 2015</p>
+        <p>Permission is hereby granted for use on ESPRESSIF SYSTEMS ESP8266 only, in which case, it is free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+        <ul>
+            <li>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</li>
+        </ul>
+        <p>THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>]]>
+    </string>
+    <string name="library_EsptouchForAndroid_isOpenSource">false</string>
+    <string name="library_EsptouchForAndroid_repositoryLink">https://github.com/Palatis/EsptouchForAndroid</string>
+</resources>

@@ -45,7 +45,7 @@ public class UDPSocketServer {
 	/**
 	 * Receive one byte from the port and convert it into String
 	 *
-	 * @return
+	 * @return the byte
 	 */
 	public byte receiveOneByte() {
 		try {
@@ -62,7 +62,8 @@ public class UDPSocketServer {
 	 * 21,24,-2,52,-102,-93,-60
 	 * 15,18,fe,34,9a,a3,c4
 	 *
-	 * @return
+	 * @param len length of bytes to receive
+	 * @return the bytes
 	 */
 	public byte[] receiveSpecLenBytes(int len) {
 		try {

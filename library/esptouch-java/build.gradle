@@ -8,42 +8,28 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
 
-def getVersionCode = { ->
-    try {
-        def code = new ByteArrayOutputStream()
-        exec {
-            commandLine 'git', 'tag', '--list'
-            standardOutput = code
-        }
-        return code.toString().split("\n").size()
-    }
-    catch (ignored) {
-        return -1;
-    }
-}
-
-def getVersionName = { ->
-    try {
-        def stdout = new ByteArrayOutputStream()
-        exec {
-            commandLine 'git', 'describe', '--tags', '--long'
-            standardOutput = stdout
-        }
-        return stdout.toString().trim()
-    }
-    catch (ignored) {
-        return null;
-    }
-}
-
-def pomGroupId = 'tw.idv.palatis'
 def pomArtifactId = 'esptouch-java'
+
+task javadocJar (type: Jar, dependsOn: javadoc) { // (1)
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+task sourceJar (type : Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives jar
+    archives sourceJar
+    archives javadocJar
+}
 
 install {
     repositories {
         mavenInstaller {
-            pom.version = getVersionName()
-            pom.groupId = pomGroupId
+            pom.version = rootProject.ext.versionName
+            pom.groupId = rootProject.ext.pomGroupId
             pom.artifactId = pomArtifactId
         }
     }
@@ -54,8 +40,8 @@ uploadArchives {
         mavenDeployer {
             repository(url: "file:///${rootProject.rootDir}/maven-repository")
             pom.project {
-                version = getVersionName()
-                groupId = pomGroupId
+                version = rootProject.ext.versionName
+                groupId = rootProject.ext.pomGroupId
                 artifactId = pomArtifactId
                 licenses {
                     license {
@@ -63,6 +49,11 @@ uploadArchives {
                         url 'https://github.com/Palatis/EsptouchForAndroid/blob/master/ESPRESSIF%20MIT%20LICENSE%20V1.md'
                         distribution 'repo'
                     }
+                }
+                scm {
+                    url rootProject.ext.scmUrl
+                    connection rootProject.ext.scmConnectionUrl
+                    developerConnection rootProject.ext.scmDeveloperConnectionUrl
                 }
             }
         }

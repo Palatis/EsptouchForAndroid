@@ -1,0 +1,12 @@
+<manifest
+    package="com.espressif.iot.esptouch"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+
+    <application
+        android:label="@string/app_name"
+        android:supportsRtl="true"/>
+
+</manifest>

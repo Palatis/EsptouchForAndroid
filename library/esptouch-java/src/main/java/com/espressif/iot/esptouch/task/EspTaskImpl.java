@@ -88,18 +88,6 @@ public class EspTaskImpl {
 		}
 	}
 
-	private List<EsptouchResult> __getEsptouchResultList() {
-		synchronized (mEsptouchResultList) {
-			if (mEsptouchResultList.isEmpty()) {
-				EsptouchResult esptouchResultFail = new EsptouchResult(false, null, null);
-				esptouchResultFail.setCancelled(mCancelled.get());
-				mEsptouchResultList.add(esptouchResultFail);
-			}
-
-			return mEsptouchResultList;
-		}
-	}
-
 	private synchronized void __interrupt() {
 		if (!mInterrupted) {
 			mInterrupted = true;
@@ -223,7 +211,7 @@ public class EspTaskImpl {
 		return this.mCancelled.get();
 	}
 
-	public List<EsptouchResult> executeForResults(int expectTaskResultCount) throws RuntimeException {
+	public void executeForResults(int expectTaskResultCount) throws RuntimeException {
 		__checkTaskValid();
 
 		mParameter.setExpectTaskResultCount(expectTaskResultCount);
@@ -240,7 +228,7 @@ public class EspTaskImpl {
 		for (int i = 0; i < mParameter.getTotalRepeatTime(); i++) {
 			isSuc = __execute(generator);
 			if (isSuc) {
-				return __getEsptouchResultList();
+				return;
 			}
 		}
 
@@ -251,16 +239,16 @@ public class EspTaskImpl {
 			} catch (InterruptedException e) {
 				// receive the udp broadcast or the user interrupt the task
 				if (this.mSuccessed) {
-					return __getEsptouchResultList();
+					return;
 				} else {
 					this.__interrupt();
-					return __getEsptouchResultList();
+					return;
 				}
 			}
 			this.__interrupt();
 		}
 
-		return __getEsptouchResultList();
+		return;
 	}
 
 	public void setEsptouchListener(EsptouchTask.OnEsptouchResultListener listener) {

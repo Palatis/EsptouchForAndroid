@@ -1,1 +1,3 @@
-include ':app', ':library:esptouch'
+include ':app', ':esptouch-java', ':esptouch-android'
+findProject(':esptouch-java').projectDir = new File('library/esptouch-java')
+findProject(':esptouch-android').projectDir = new File('library/esptouch-android')

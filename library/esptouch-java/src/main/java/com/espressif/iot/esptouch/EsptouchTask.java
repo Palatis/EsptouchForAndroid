@@ -1,10 +1,9 @@
 package com.espressif.iot.esptouch;
 
-import com.espressif.iot.esptouch.task.EsptouchTaskParameter;
 import com.espressif.iot.esptouch.task.EspTaskImpl;
+import com.espressif.iot.esptouch.task.EsptouchTaskParameter;
 
 import java.net.InetAddress;
-import java.util.List;
 
 public class EsptouchTask {
 	public interface OnEsptouchResultListener {
@@ -59,10 +58,11 @@ public class EsptouchTask {
 	/**
 	 * Constructor of EsptouchTask
 	 *
-	 * @param apSsid       the Ap's ssid
-	 * @param apBssid      the Ap's bssid
-	 * @param apPassword   the Ap's password
-	 * @param isSsidHidden whether the Ap's ssid is hidden
+	 * @param apSsid             the Ap's ssid
+	 * @param apBssid            the Ap's bssid
+	 * @param apPassword         the Ap's password
+	 * @param isSsidHidden       whether the Ap's ssid is hidden
+	 * @param timeoutMillisecond timeout in milliseconds
 	 */
 	public EsptouchTask(String apSsid, String apBssid, String apPassword, boolean isSsidHidden, int timeoutMillisecond) {
 		this(apSsid, apBssid, apPassword, isSsidHidden);
@@ -73,15 +73,11 @@ public class EsptouchTask {
 		_mEsptouchTask.interrupt();
 	}
 
-	public boolean isCancelled() {
-		return _mEsptouchTask.isCancelled();
-	}
-
-	public List<EsptouchResult> executeForResults(int expectTaskResultCount) throws RuntimeException {
+	public void executeForResults(int expectTaskResultCount) throws RuntimeException {
 		if (expectTaskResultCount <= 0) {
 			expectTaskResultCount = Integer.MAX_VALUE;
 		}
-		return _mEsptouchTask.executeForResults(expectTaskResultCount);
+		_mEsptouchTask.executeForResults(expectTaskResultCount);
 	}
 
 	public void setEsptouchListener(OnEsptouchResultListener listener) {

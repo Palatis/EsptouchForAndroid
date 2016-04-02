@@ -4,14 +4,14 @@ import com.espressif.iot.esptouch.util.ByteUtil;
 import com.espressif.iot.esptouch.util.CRC8;
 
 /**
- * one data format:(data code should have 2 to 65 data)
- * <p/>
+ * <p>one data format:(data code should have 2 to 65 data)</p>
+ * <pre>
  * control byte       high 4 bits    low 4 bits
  * 1st 9bits:       0x0             crc(high)      data(high)
  * 2nd 9bits:       0x1                sequence header
  * 3rd 9bits:       0x0             crc(low)       data(low)
- * <p/>
- * sequence header: 0,1,2,...
+ * </pre>
+ * <p>sequence header: 0,1,2,...</p>
  *
  * @author afunx
  */
