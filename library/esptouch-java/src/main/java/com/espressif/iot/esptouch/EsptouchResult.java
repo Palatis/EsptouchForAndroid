@@ -42,4 +42,14 @@ public class EsptouchResult {
 	public InetAddress getInetAddress() {
 		return mInetAddress;
 	}
+
+	@Override
+	public String toString() {
+		return super.toString() +
+				"{ success = " + mSuccess +
+				", cancelled = " + mCancelled.get() +
+				", bssid = " + mBssid +
+				", ip = " + mInetAddress.getHostAddress() +
+				"}";
+	}
 }
