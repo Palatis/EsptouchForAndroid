@@ -1,6 +1,5 @@
 # for AboutLibraries
--keep public class com.espressif.iot.esptouch.R.string;
--keepclassmembers class com.espressif.iot.esptouch.R.string$* {
+-keep public class com.espressif.iot.esptouch.R.string {
     public static int define_EsptouchForAndroid;
     public static int library_EsptouchForAndroid_author;
     public static int library_EsptouchForAndroid_authorWebsite;
