@@ -26,7 +26,8 @@ see [the app](https://github.com/Palatis/EsptouchForAndroid/tree/master/app) for
         * first release
 
 ## Using with Gradle
-add the repository URL to the `repositories` section of your project's `build.gradle`:
+
+Add the repository URL to the `repositories` section of your project's `build.gradle`:
 ```
 ...
 allprojects {
@@ -49,4 +50,7 @@ dependencies {
 ```
 
 ## License
+
+This library is using a semi-open-source license, it is free - as in speech - as long as you're working on an [ESP8266](http://espressif.com/en/products/hardware/esp8266ex/overview) (may grant permission to [ESP32](http://espressif.com/en/products/hardware/esp32/overview) in the future). So if you're trying to use it with other hardware, **YOU ARE VIOLATING THE PERMISSION, AND ARE AT YOUR OWN RISK.**
+
 - [ESPRESSIF MIT LICENSE V1](ESPRESSIF MIT LICENSE V1.md)
