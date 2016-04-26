@@ -142,7 +142,7 @@ public class EspTaskImpl {
 										receiveBytes,
 										mParameter.getEsptouchResultOneLen(),
 										mParameter.getEsptouchResultMacLen());
-								InetAddress inetAddress = mNetworkHelperCallback.parseInetAddress(
+								InetAddress inetAddress = parseInetAddress(
 										receiveBytes,
 										mParameter.getEsptouchResultOneLen() + mParameter.getEsptouchResultMacLen(),
 										mParameter.getEsptouchResultIpLen());
@@ -155,6 +155,14 @@ public class EspTaskImpl {
 				__interrupt();
 			}
 		}.start();
+	}
+
+	private static InetAddress parseInetAddress(byte[] inputBytes, int offset, int length) {
+		try {
+			return InetAddress.getByAddress(new byte[]{inputBytes[offset], inputBytes[offset + 1], inputBytes[offset + 2], inputBytes[offset + 3]});
+		} catch (UnknownHostException ex) {
+			throw new RuntimeException(ex);
+		}
 	}
 
 	private boolean __execute(EsptouchGenerator generator) {

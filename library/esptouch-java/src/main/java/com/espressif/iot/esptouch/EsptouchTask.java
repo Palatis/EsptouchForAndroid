@@ -12,8 +12,6 @@ public class EsptouchTask {
 
 	public interface NetworkHelperCallback {
 		InetAddress getLocalInetAddress();
-
-		InetAddress parseInetAddress(byte[] bytes, int offset, int length);
 	}
 
 	public interface Logger {
