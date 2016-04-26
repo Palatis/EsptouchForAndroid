@@ -207,19 +207,6 @@ public abstract class EsptouchAsyncTask
 		return mLocalInetAddress;
 	}
 
-	@Override
-	public InetAddress parseInetAddress(byte[] inputBytes, int offset, int length) {
-		final byte[] ipBytes = new byte[4];
-		System.arraycopy(inputBytes, offset, ipBytes, 0, length);
-		try {
-			return InetAddress.getByAddress(ipBytes);
-		} catch (UnknownHostException ex) {
-			throw new RuntimeException(ex);
-		} finally {
-			cleanUp();
-		}
-	}
-
 	private void cleanUp() {
 		try {
 			mMulticastLock.release();
